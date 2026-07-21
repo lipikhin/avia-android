@@ -155,6 +155,8 @@ class WorkorderDetailViewModel @Inject constructor(
 @Composable
 fun WorkorderDetailScreen(
     onBack: () -> Unit,
+    onOpenTasks: () -> Unit = {},
+    onOpenProcesses: () -> Unit = {},
     vm: WorkorderDetailViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsState()
@@ -204,13 +206,18 @@ fun WorkorderDetailScreen(
             state.error != null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(state.error!!, color = MaterialTheme.colorScheme.error)
             }
-            else -> DetailBody(state.wo!!, vm)
+            else -> DetailBody(state.wo!!, vm, onOpenTasks, onOpenProcesses)
         }
     }
 }
 
 @Composable
-private fun DetailBody(wo: WorkorderDetailDto, vm: WorkorderDetailViewModel) {
+private fun DetailBody(
+    wo: WorkorderDetailDto,
+    vm: WorkorderDetailViewModel,
+    onOpenTasks: () -> Unit = {},
+    onOpenProcesses: () -> Unit = {},
+) {
     val context = LocalContext.current
 
     // Camera hand-off: the system camera writes into our FileProvider cache
@@ -249,6 +256,11 @@ private fun DetailBody(wo: WorkorderDetailDto, vm: WorkorderDetailViewModel) {
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(onClick = onOpenTasks, modifier = Modifier.weight(1f)) { Text("Tasks") }
+            OutlinedButton(onClick = onOpenProcesses, modifier = Modifier.weight(1f)) { Text("Processes") }
+        }
+
         SectionCard("Info") {
             InfoRow("Customer", wo.customer?.name)
             InfoRow("Customer PO", wo.customerPo)

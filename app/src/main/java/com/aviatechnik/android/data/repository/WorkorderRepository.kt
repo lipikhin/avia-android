@@ -5,7 +5,11 @@ import com.aviatechnik.android.data.api.ArrivalBoxUpdateRequest
 import com.aviatechnik.android.data.api.AviaApi
 import com.aviatechnik.android.data.api.MediaUploadData
 import com.aviatechnik.android.data.api.StorageUpdateData
+import com.aviatechnik.android.data.api.ProcessDatesRequest
+import com.aviatechnik.android.data.api.ProcessesData
 import com.aviatechnik.android.data.api.StorageUpdateRequest
+import com.aviatechnik.android.data.api.TaskDatesRequest
+import com.aviatechnik.android.data.api.TasksData
 import com.aviatechnik.android.data.api.WorkorderDetailData
 import com.aviatechnik.android.data.api.WorkordersData
 import com.aviatechnik.android.data.auth.TokenStore
@@ -33,6 +37,34 @@ class WorkorderRepository @Inject constructor(
 
     suspend fun updateArrivalBox(id: Int, status: String?, notes: String?): ApiResult<ArrivalBoxUpdateData> =
         apiCall(tokenStore) { api.updateArrivalBox(id, ArrivalBoxUpdateRequest(status, notes)) }
+
+    suspend fun tasks(id: Int): ApiResult<TasksData> =
+        apiCall(tokenStore) { api.tasks(id) }
+
+    /** field: "start" | "finish" — only the changed field is sent. */
+    suspend fun updateTaskDate(woId: Int, taskId: Int, field: String, date: String): ApiResult<*> =
+        apiCall(tokenStore) {
+            api.updateTaskDates(
+                woId, taskId,
+                if (field == "start") TaskDatesRequest(dateStart = date) else TaskDatesRequest(dateFinish = date),
+            )
+        }
+
+    suspend fun processes(id: Int): ApiResult<ProcessesData> =
+        apiCall(tokenStore) { api.processes(id) }
+
+    /** field: "start" | "finish" | "promise". */
+    suspend fun updateProcessDate(processId: Int, field: String, date: String): ApiResult<*> =
+        apiCall(tokenStore) {
+            api.updateProcessDates(
+                processId,
+                when (field) {
+                    "start" -> ProcessDatesRequest(dateStart = date)
+                    "finish" -> ProcessDatesRequest(dateFinish = date)
+                    else -> ProcessDatesRequest(datePromise = date)
+                },
+            )
+        }
 
     suspend fun uploadPhoto(id: Int, category: String, file: File): ApiResult<MediaUploadData> {
         val part = MultipartBody.Part.createFormData(

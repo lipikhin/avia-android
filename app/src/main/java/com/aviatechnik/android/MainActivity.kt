@@ -67,10 +67,25 @@ fun AviaNavHost() {
         composable(
             route = "wo/{id}",
             arguments = listOf(navArgument("id") { type = NavType.IntType }),
-        ) {
+        ) { entry ->
+            val id = entry.arguments?.getInt("id") ?: 0
             com.aviatechnik.android.ui.screens.workorders.WorkorderDetailScreen(
                 onBack = { nav.popBackStack() },
+                onOpenTasks = { nav.navigate("wo/$id/tasks") },
+                onOpenProcesses = { nav.navigate("wo/$id/processes") },
             )
+        }
+        composable(
+            route = "wo/{id}/tasks",
+            arguments = listOf(navArgument("id") { type = NavType.IntType }),
+        ) {
+            com.aviatechnik.android.ui.screens.workorders.TasksScreen(onBack = { nav.popBackStack() })
+        }
+        composable(
+            route = "wo/{id}/processes",
+            arguments = listOf(navArgument("id") { type = NavType.IntType }),
+        ) {
+            com.aviatechnik.android.ui.screens.workorders.ProcessesScreen(onBack = { nav.popBackStack() })
         }
     }
 }

@@ -220,6 +220,84 @@ data class MediaUploadData(
     @SerialName("photo_count") val photoCount: Int = 0,
 )
 
+/* ── tasks ─────────────────────────────────────────────────────── */
+
+@Serializable
+data class TasksData(
+    val groups: List<TaskGroupDto> = emptyList(),
+)
+
+@Serializable
+data class TaskGroupDto(
+    val id: Int,
+    val name: String? = null,
+    @SerialName("is_done") val isDone: Boolean = false,
+    val tasks: List<TaskDto> = emptyList(),
+)
+
+@Serializable
+data class TaskDto(
+    val id: Int,
+    val name: String? = null,
+    @SerialName("has_start_date") val hasStartDate: Boolean = false,
+    @SerialName("can_edit_start") val canEditStart: Boolean = false,
+    @SerialName("can_edit_finish") val canEditFinish: Boolean = false,
+    val main: MainDto? = null,
+)
+
+@Serializable
+data class MainDto(
+    val id: Int? = null,
+    @SerialName("date_start") val dateStart: String? = null,
+    @SerialName("date_finish") val dateFinish: String? = null,
+    @SerialName("ignore_row") val ignoreRow: Boolean = false,
+    val user: NamedDto? = null,
+)
+
+/** Only the field being changed is serialized (explicitNulls=false). */
+@Serializable
+data class TaskDatesRequest(
+    @SerialName("date_start") val dateStart: String? = null,
+    @SerialName("date_finish") val dateFinish: String? = null,
+)
+
+/* ── processes ─────────────────────────────────────────────────── */
+
+@Serializable
+data class ProcessesData(
+    val components: List<ProcessComponentDto> = emptyList(),
+)
+
+@Serializable
+data class ProcessComponentDto(
+    val id: Int,
+    val name: String? = null,
+    @SerialName("ipl_num") val iplNum: String? = null,
+    @SerialName("part_number") val partNumber: String? = null,
+    val processes: List<TdrProcessDto> = emptyList(),
+)
+
+@Serializable
+data class TdrProcessDto(
+    val id: Int,
+    val name: String? = null,
+    val description: String? = null,
+    @SerialName("repair_order") val repairOrder: String? = null,
+    @SerialName("date_start") val dateStart: String? = null,
+    @SerialName("date_finish") val dateFinish: String? = null,
+    @SerialName("date_promise") val datePromise: String? = null,
+    @SerialName("can_edit_start") val canEditStart: Boolean = false,
+    @SerialName("can_edit_finish") val canEditFinish: Boolean = false,
+    @SerialName("can_edit_promise") val canEditPromise: Boolean = false,
+)
+
+@Serializable
+data class ProcessDatesRequest(
+    @SerialName("date_start") val dateStart: String? = null,
+    @SerialName("date_finish") val dateFinish: String? = null,
+    @SerialName("date_promise") val datePromise: String? = null,
+)
+
 /* ── bootstrap ─────────────────────────────────────────────────────
  * The payload is large and server-driven; the shell only needs a few
  * typed fields — the rest stays as JSON for the screens that use it. */

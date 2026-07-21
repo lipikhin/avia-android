@@ -6,6 +6,7 @@ import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Part
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -48,4 +49,23 @@ interface AviaApi {
         @Part photo: okhttp3.MultipartBody.Part, // form field name: photos[]
         @Part("category") category: okhttp3.RequestBody,
     ): Envelope<MediaUploadData>
+
+    @GET("workorders/{id}/tasks")
+    suspend fun tasks(@Path("id") id: Int): Envelope<TasksData>
+
+    @PUT("workorders/{id}/tasks/{taskId}/dates")
+    suspend fun updateTaskDates(
+        @Path("id") id: Int,
+        @Path("taskId") taskId: Int,
+        @Body body: TaskDatesRequest,
+    ): Envelope<kotlinx.serialization.json.JsonObject>
+
+    @GET("workorders/{id}/processes")
+    suspend fun processes(@Path("id") id: Int): Envelope<ProcessesData>
+
+    @PATCH("tdr-processes/{id}/dates")
+    suspend fun updateProcessDates(
+        @Path("id") id: Int,
+        @Body body: ProcessDatesRequest,
+    ): Envelope<kotlinx.serialization.json.JsonObject>
 }
