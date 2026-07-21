@@ -84,6 +84,7 @@ dependencies {
 
     // Images (Bearer header is added by the shared OkHttp client)
     implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("io.coil-kt:coil-svg:2.7.0")
 
     // Token persistence
     implementation("androidx.datastore:datastore-preferences:1.1.1")

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -25,7 +26,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -258,23 +262,31 @@ private fun DetailBody(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            OutlinedButton(onClick = onOpenTasks, modifier = Modifier.weight(1f)) { Text("Tasks") }
-            OutlinedButton(onClick = onOpenProcesses, modifier = Modifier.weight(1f)) { Text("Processes") }
-            OutlinedButton(onClick = onOpenComponents, modifier = Modifier.weight(1f)) { Text("Parts") }
-        }
+        // WO context menu — parity with the web onShowPage top menu
+        com.aviatechnik.android.ui.components.MobileMenuBar(
+            listOf(
+                com.aviatechnik.android.ui.components.MenuItem(
+                    key = "wo", label = "Workorder", letter = "W", active = true,
+                ),
+                com.aviatechnik.android.ui.components.MenuItem(
+                    key = "tasks", label = "Tasks",
+                    icon = Icons.Filled.Alarm,
+                    onClick = onOpenTasks,
+                ),
+                com.aviatechnik.android.ui.components.MenuItem(
+                    key = "parts", label = "Parts",
+                    icon = Icons.Filled.Settings,
+                    onClick = onOpenComponents,
+                ),
+                com.aviatechnik.android.ui.components.MenuItem(
+                    key = "process", label = "Process",
+                    icon = Icons.Filled.Timeline,
+                    onClick = onOpenProcesses,
+                ),
+            ),
+        )
 
-        SectionCard("Info") {
-            InfoRow("Customer", wo.customer?.name)
-            InfoRow("Customer PO", wo.customerPo)
-            InfoRow("P/N", wo.unit?.partNumber)
-            InfoRow("Unit", listOfNotNull(wo.unit?.name, wo.unit?.description).joinToString(" — ").ifEmpty { null })
-            InfoRow("S/N", wo.serialNumber)
-            InfoRow("Description", wo.description)
-            InfoRow("Instruction", wo.instruction?.name)
-            InfoRow("Owner", wo.owner?.name)
-            if (wo.approved) InfoRow("Approved", listOfNotNull(wo.approveName, wo.approveAt).joinToString(" · "))
-        }
+        InfoBlock(wo)
 
         StorageSection(wo, vm)
         ArrivalBoxSection(wo, vm)
@@ -418,6 +430,75 @@ private fun NumField(label: String, value: String, onChange: (String) -> Unit, m
         singleLine = true,
         modifier = modifier,
     )
+}
+
+/** Web-parity header block: cyan frame, W-number, owner, key info rows. */
+@Composable
+private fun InfoBlock(wo: WorkorderDetailDto) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .border(1.dp, AviaDeepSkyBlue, RoundedCornerShape(8.dp))
+            .padding(10.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "W ${wo.numberDisplay ?: wo.number}",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                color = if (wo.isDone) AviaTextSecondary else AviaDeepSkyBlue,
+            )
+            Spacer(Modifier.width(10.dp))
+            Text(wo.owner?.name ?: "", style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.weight(1f))
+            Text("Open: ${wo.openAt ?: "—"}", style = MaterialTheme.typography.bodySmall, color = AviaTextSecondary)
+        }
+        Row {
+            KV("p/n: ", wo.unit?.partNumber)
+            Spacer(Modifier.weight(1f))
+            KV("s/n: ", wo.serialNumber)
+        }
+        KV("Component: ", wo.description ?: wo.unit?.name)
+        Row {
+            KV("Customer: ", wo.customer?.name)
+            Spacer(Modifier.weight(1f))
+            KV("Lib: ", wo.unit?.manual?.lib)
+        }
+        Row {
+            KV("Instruction: ", wo.instruction?.name)
+            Spacer(Modifier.weight(1f))
+            KV("Manual: ", wo.unit?.manual?.number)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (wo.approved) {
+                Text(
+                    "Approved",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = androidx.compose.ui.graphics.Color.White,
+                    modifier = Modifier
+                        .background(
+                            androidx.compose.ui.graphics.Color(0xFF198754),
+                            RoundedCornerShape(10.dp),
+                        )
+                        .padding(horizontal = 8.dp, vertical = 2.dp),
+                )
+            } else {
+                Text("Not approved", style = MaterialTheme.typography.labelSmall, color = AviaTextSecondary)
+            }
+            Spacer(Modifier.weight(1f))
+            Text("Done: ${wo.doneAt ?: "—"}", style = MaterialTheme.typography.labelSmall, color = AviaTextSecondary)
+        }
+    }
+}
+
+@Composable
+private fun KV(label: String, value: String?) {
+    Row {
+        Text(label, style = MaterialTheme.typography.bodySmall, color = AviaTextSecondary)
+        Text(value ?: "—", style = MaterialTheme.typography.bodySmall,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+    }
 }
 
 @Composable

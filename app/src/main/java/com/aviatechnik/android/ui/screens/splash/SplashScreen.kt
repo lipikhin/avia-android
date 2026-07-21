@@ -59,14 +59,15 @@ fun SplashScreen(
         hasSession?.let(onReady)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(AviaBlue, AviaDeepSkyBlue))),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+    // Title page — parity with the web front page (black bar + NODUS hero)
+    com.aviatechnik.android.ui.components.FrontShell(
+        onHamburger = null,
     ) {
-        Text("AVIATECHNIK", style = MaterialTheme.typography.headlineMedium, color = Color.White)
-        CircularProgressIndicator(Modifier.padding(top = 24.dp), color = Color.White)
+        CircularProgressIndicator(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 48.dp),
+            color = Color.White.copy(alpha = 0.7f),
+        )
     }
 }

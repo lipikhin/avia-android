@@ -118,6 +118,14 @@ data class UnitDto(
     @SerialName("part_number") val partNumber: String? = null,
     val name: String? = null,
     val description: String? = null,
+    val manual: ManualRefDto? = null,
+)
+
+@Serializable
+data class ManualRefDto(
+    val id: Int? = null,
+    val number: String? = null,
+    val lib: String? = null,
 )
 
 /* ── workorder detail ──────────────────────────────────────────── */

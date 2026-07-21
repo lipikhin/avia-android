@@ -284,9 +284,14 @@ fun ComponentsScreen(onBack: () -> Unit, vm: ComponentsViewModel = hiltViewModel
             ) {
                 if (filter == "parts") {
                     item {
-                        Button(onClick = { pickingComponent = true }, modifier = Modifier.fillMaxWidth()) {
-                            Text("+ Attach part")
-                        }
+                        Button(
+                            onClick = { pickingComponent = true },
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = androidx.compose.ui.graphics.Color(0xFF198754),
+                                contentColor = androidx.compose.ui.graphics.Color.White,
+                            ),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text("Add Parts") }
                     }
                 }
                 if (shown.isEmpty()) {
@@ -318,10 +323,16 @@ fun ComponentsScreen(onBack: () -> Unit, vm: ComponentsViewModel = hiltViewModel
                                 }
                                 Column(Modifier.weight(1f)) {
                                     Text(
-                                        listOfNotNull(comp.iplNum, comp.partNumber).joinToString(" · "),
-                                        style = MaterialTheme.typography.titleSmall, color = AviaDeepSkyBlue,
+                                        comp.name ?: "",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                        color = AviaDeepSkyBlue,
                                     )
-                                    Text(comp.name ?: "", style = MaterialTheme.typography.bodyMedium)
+                                    Text(
+                                        listOfNotNull(comp.iplNum?.let { "IPL: $it" }, comp.partNumber?.let { "P/N: $it" })
+                                            .joinToString("   "),
+                                        style = MaterialTheme.typography.labelSmall, color = AviaTextSecondary,
+                                    )
                                 }
                                 IconButton(onClick = { launchCamera(comp.id) }) {
                                     Icon(Icons.Filled.PhotoCamera, contentDescription = "Part photo", tint = AviaDeepSkyBlue)
@@ -336,17 +347,15 @@ fun ComponentsScreen(onBack: () -> Unit, vm: ComponentsViewModel = hiltViewModel
                                         .padding(vertical = 2.dp),
                                 ) {
                                     Column(Modifier.weight(1f)) {
-                                        Text(
-                                            listOfNotNull(tdr.codeName, tdr.necessariesName).joinToString(" — "),
-                                            style = MaterialTheme.typography.bodySmall,
-                                        )
-                                        val meta = listOfNotNull(
-                                            tdr.qty?.let { "qty $it" },
-                                            tdr.serialNumber?.takeIf { it.isNotBlank() }?.let { "S/N $it" },
-                                        ).joinToString(" · ")
-                                        if (meta.isNotEmpty()) {
-                                            Text(meta, style = MaterialTheme.typography.labelSmall, color = AviaTextSecondary)
+                                        // web parity: "Code -> Necessary (SN: x)"
+                                        val line = buildString {
+                                            append(tdr.codeName ?: "")
+                                            append(" → ")
+                                            tdr.necessariesName?.let { append(it) }
+                                            tdr.serialNumber?.takeIf { it.isNotBlank() }?.let { append(" (SN: $it)") }
+                                            tdr.qty?.takeIf { it > 1 }?.let { append(" · qty $it") }
                                         }
+                                        Text(line, style = MaterialTheme.typography.bodySmall)
                                     }
                                     IconButton(onClick = { deleteTarget = tdr }) {
                                         Icon(Icons.Filled.Delete, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)

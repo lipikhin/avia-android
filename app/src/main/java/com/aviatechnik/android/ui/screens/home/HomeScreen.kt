@@ -1,6 +1,12 @@
 package com.aviatechnik.android.ui.screens.home
 
 import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -101,63 +107,57 @@ fun HomeScreen(
         }
 
         else -> {
-            // Shell: header + section switcher + current section. Implemented
-            // sections appear as chips; the full server-driven menu comes later.
+            // Shell: top menu bar (parity with mobile-menu.blade) + section.
             val b = state.bootstrap!!
             var section by androidx.compose.runtime.saveable.rememberSaveable {
                 androidx.compose.runtime.mutableStateOf("workorders")
             }
             Column(Modifier.fillMaxSize()) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 10.dp),
-                ) {
-                    Column(
-                        Modifier
-                            .weight(1f)
-                            .clickable(onClick = onOpenProfile),
-                    ) {
-                        Text(
-                            when (section) {
-                                "materials" -> "Materials"
-                                "drafts" -> "Drafts"
-                                else -> "Workorders"
-                            },
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-                        Text(
-                            "${b.user.name ?: b.user.email ?: ""} · profile",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = com.aviatechnik.android.ui.theme.AviaTextSecondary,
-                        )
-                    }
-                    Button(onClick = vm::logout) { Text("Logout") }
-                }
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                ) {
-                    androidx.compose.material3.FilterChip(
-                        selected = section == "workorders",
-                        onClick = { section = "workorders" },
-                        label = { Text("Workorders") },
+                val items = buildList {
+                    add(
+                        com.aviatechnik.android.ui.components.MenuItem(
+                            key = "wo", label = "WO",
+                            icon = Icons.AutoMirrored.Filled.List,
+                            active = section == "workorders",
+                            onClick = { section = "workorders" },
+                        ),
                     )
-                    androidx.compose.material3.FilterChip(
-                        selected = section == "materials",
-                        onClick = { section = "materials" },
-                        label = { Text("Materials") },
+                    add(
+                        com.aviatechnik.android.ui.components.MenuItem(
+                            key = "materials", label = "Materials",
+                            icon = Icons.Filled.Category,
+                            active = section == "materials",
+                            onClick = { section = "materials" },
+                        ),
                     )
-                    // role-gated: capability from bootstrap (Shipping/Manager/Admin)
                     if (b.user.capabilities["can_create_draft"] == true) {
-                        androidx.compose.material3.FilterChip(
-                            selected = section == "drafts",
-                            onClick = { section = "drafts" },
-                            label = { Text("Drafts") },
+                        add(
+                            com.aviatechnik.android.ui.components.MenuItem(
+                                key = "drafts", label = "Drafts",
+                                icon = Icons.Filled.Description,
+                                active = section == "drafts",
+                                onClick = { section = "drafts" },
+                            ),
                         )
                     }
+                    add(
+                        com.aviatechnik.android.ui.components.MenuItem(
+                            key = "profile",
+                            label = b.user.name?.split(" ")?.firstOrNull() ?: "Profile",
+                            icon = Icons.Filled.Person,
+                            onClick = onOpenProfile,
+                        ),
+                    )
+                    add(
+                        com.aviatechnik.android.ui.components.MenuItem(
+                            key = "logout", label = "Logout",
+                            icon = Icons.AutoMirrored.Filled.Logout,
+                            onClick = vm::logout,
+                        ),
+                    )
                 }
+                com.aviatechnik.android.ui.components.MobileMenuBar(items)
+
                 when (section) {
                     "materials" -> com.aviatechnik.android.ui.screens.materials.MaterialsSection()
                     "drafts" -> com.aviatechnik.android.ui.screens.drafts.DraftsSection(

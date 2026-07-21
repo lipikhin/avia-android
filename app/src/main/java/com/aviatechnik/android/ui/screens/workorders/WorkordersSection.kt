@@ -21,6 +21,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -97,27 +99,26 @@ fun WorkordersSection(
     val state by vm.state.collectAsState()
 
     Column(Modifier.fillMaxSize()) {
-        OutlinedTextField(
-            value = state.search,
-            onValueChange = vm::onSearch,
-            placeholder = { Text("Search WO…") },
-            singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-        )
+        // search band — parity with the web filter row: Search + All + Done
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(androidx.compose.ui.graphics.Color(0xFF212529))
+                .padding(horizontal = 12.dp, vertical = 6.dp),
         ) {
-            FilterChip(
-                selected = state.scopeAll,
-                onClick = { vm.onScopeAll(!state.scopeAll) },
-                label = { Text(if (state.scopeAll) "All WO" else "My WO") },
+            OutlinedTextField(
+                value = state.search,
+                onValueChange = vm::onSearch,
+                placeholder = { Text("Search WO…", style = MaterialTheme.typography.bodySmall) },
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1.2f),
             )
-            Spacer(Modifier.padding(6.dp))
+            Checkbox(checked = state.scopeAll, onCheckedChange = { vm.onScopeAll(it) })
+            Text("All", style = MaterialTheme.typography.bodyMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
             Checkbox(checked = state.showDone, onCheckedChange = vm::onShowDone)
-            Text("Done", style = MaterialTheme.typography.bodyMedium)
+            Text("Done", style = MaterialTheme.typography.bodyMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
         }
 
         when {
@@ -138,12 +139,11 @@ fun WorkordersSection(
                 } else {
                     LazyColumn(
                         Modifier.fillMaxSize(),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp),
-                        verticalArrangement = Arrangement.spacedBy(0.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         items(shown, key = { it.id }) { wo ->
                             WorkorderRow(wo, onClick = { onOpenWorkorder(wo.id) })
-                            HorizontalDivider(color = Color.White.copy(alpha = 0.06f))
                         }
                     }
                 }
@@ -152,34 +152,39 @@ fun WorkordersSection(
     }
 }
 
+/** Big bordered button — parity with the web .wo-item (cyan frame, huge
+ *  centered number; done → grey, draft → yellow). */
 @Composable
 private fun WorkorderRow(wo: WorkorderItemDto, onClick: () -> Unit) {
-    val numberColor = when {
-        wo.isDraft -> AviaTextSecondary
+    val accent = when {
+        wo.isDraft -> com.aviatechnik.android.ui.theme.AviaWarning
         wo.isDone -> AviaTextSecondary
         else -> AviaDeepSkyBlue
     }
     Column(
         Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                wo.numberDisplay ?: wo.number.toString(),
-                style = MaterialTheme.typography.titleMedium,
-                color = numberColor,
+            .background(
+                androidx.compose.ui.graphics.Color(0xFF2B3035),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
             )
-            if (wo.isDraft) {
-                Text("  draft", style = MaterialTheme.typography.labelSmall, color = AviaTextSecondary)
-            }
-            Spacer(Modifier.weight(1f))
-            wo.openAt?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = AviaTextSecondary) }
-        }
+            .border(
+                width = 1.dp,
+                color = if (wo.isDraft) accent else androidx.compose.ui.graphics.Color(0xFF4A5058),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+            )
+            .clickable(onClick = onClick)
+            .padding(vertical = 14.dp, horizontal = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            wo.numberDisplay ?: wo.number.toString(),
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+            color = accent,
+        )
         val sub = listOfNotNull(wo.customer?.name, wo.unit?.partNumber).joinToString("  ·  ")
         if (sub.isNotEmpty()) {
-            Spacer(Modifier.height(2.dp))
             Text(sub, style = MaterialTheme.typography.bodySmall, color = AviaTextSecondary)
         }
     }

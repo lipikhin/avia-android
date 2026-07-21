@@ -15,5 +15,8 @@ class AviaApp : Application(), ImageLoaderFactory {
     @Inject lateinit var okHttpClient: OkHttpClient
 
     override fun newImageLoader(): ImageLoader =
-        ImageLoader.Builder(this).okHttpClient(okHttpClient).build()
+        ImageLoader.Builder(this)
+            .okHttpClient(okHttpClient)
+            .components { add(coil.decode.SvgDecoder.Factory()) }
+            .build()
 }
