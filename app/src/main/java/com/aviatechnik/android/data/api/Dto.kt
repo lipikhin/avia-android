@@ -298,6 +298,28 @@ data class ProcessDatesRequest(
     @SerialName("date_promise") val datePromise: String? = null,
 )
 
+/* ── materials ─────────────────────────────────────────────────── */
+
+@Serializable
+data class MaterialsData(
+    val items: List<MaterialDto> = emptyList(),
+)
+
+@Serializable
+data class MaterialDto(
+    val id: Int,
+    val code: String? = null,
+    val material: String? = null,
+    val specification: String? = null,
+    val description: String? = null,
+)
+
+@Serializable
+data class MaterialUpdateRequest(val description: String? = null)
+
+@Serializable
+data class MaterialUpdateData(val material: MaterialDto)
+
 /* ── bootstrap ─────────────────────────────────────────────────────
  * The payload is large and server-driven; the shell only needs a few
  * typed fields — the rest stays as JSON for the screens that use it. */

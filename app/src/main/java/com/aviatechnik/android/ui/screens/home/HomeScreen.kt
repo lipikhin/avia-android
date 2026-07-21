@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -97,9 +98,12 @@ fun HomeScreen(
         }
 
         else -> {
-            // Shell: header + current section. v1 opens on Workorders (parity
-            // with mobile web); other sections join as they are implemented.
+            // Shell: header + section switcher + current section. Implemented
+            // sections appear as chips; the full server-driven menu comes later.
             val b = state.bootstrap!!
+            var section by androidx.compose.runtime.saveable.rememberSaveable {
+                androidx.compose.runtime.mutableStateOf("workorders")
+            }
             Column(Modifier.fillMaxSize()) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -108,7 +112,10 @@ fun HomeScreen(
                         .padding(horizontal = 16.dp, vertical = 10.dp),
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text("Workorders", style = MaterialTheme.typography.titleLarge)
+                        Text(
+                            if (section == "materials") "Materials" else "Workorders",
+                            style = MaterialTheme.typography.titleLarge,
+                        )
                         Text(
                             b.user.name ?: b.user.email ?: "",
                             style = MaterialTheme.typography.labelSmall,
@@ -117,9 +124,28 @@ fun HomeScreen(
                     }
                     Button(onClick = vm::logout) { Text("Logout") }
                 }
-                com.aviatechnik.android.ui.screens.workorders.WorkordersSection(
-                    onOpenWorkorder = onOpenWorkorder,
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                ) {
+                    androidx.compose.material3.FilterChip(
+                        selected = section == "workorders",
+                        onClick = { section = "workorders" },
+                        label = { Text("Workorders") },
+                    )
+                    androidx.compose.material3.FilterChip(
+                        selected = section == "materials",
+                        onClick = { section = "materials" },
+                        label = { Text("Materials") },
+                    )
+                }
+                if (section == "materials") {
+                    com.aviatechnik.android.ui.screens.materials.MaterialsSection()
+                } else {
+                    com.aviatechnik.android.ui.screens.workorders.WorkordersSection(
+                        onOpenWorkorder = onOpenWorkorder,
+                    )
+                }
             }
         }
     }

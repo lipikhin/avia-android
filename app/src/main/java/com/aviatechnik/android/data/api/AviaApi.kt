@@ -63,6 +63,12 @@ interface AviaApi {
     @GET("workorders/{id}/processes")
     suspend fun processes(@Path("id") id: Int): Envelope<ProcessesData>
 
+    @GET("materials")
+    suspend fun materials(): Envelope<MaterialsData>
+
+    @PATCH("materials/{id}")
+    suspend fun updateMaterial(@Path("id") id: Int, @Body body: MaterialUpdateRequest): Envelope<MaterialUpdateData>
+
     @PATCH("tdr-processes/{id}/dates")
     suspend fun updateProcessDates(
         @Path("id") id: Int,
