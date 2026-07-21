@@ -63,6 +63,15 @@ fun AviaNavHost() {
                 },
                 onOpenWorkorder = { id -> nav.navigate("wo/$id") },
                 onOpenProfile = { nav.navigate("profile") },
+                onCreateDraft = { nav.navigate("draft/new") },
+            )
+        }
+        composable("draft/new") {
+            com.aviatechnik.android.ui.screens.drafts.DraftCreateScreen(
+                onBack = { nav.popBackStack() },
+                onCreated = { id ->
+                    nav.navigate("wo/$id") { popUpTo("draft/new") { inclusive = true } }
+                },
             )
         }
         composable("profile") {

@@ -63,6 +63,15 @@ interface AviaApi {
     @GET("workorders/{id}/processes")
     suspend fun processes(@Path("id") id: Int): Envelope<ProcessesData>
 
+    @GET("draft/options")
+    suspend fun draftOptions(): Envelope<DraftOptionsData>
+
+    @POST("drafts")
+    suspend fun storeDraft(@Body body: DraftCreateRequest): Envelope<WorkorderDetailData>
+
+    @POST("draft-units")
+    suspend fun storeDraftUnit(@Body body: DraftUnitRequest): Envelope<DraftUnitData>
+
     @GET("profile")
     suspend fun profile(): Envelope<ProfileData>
 

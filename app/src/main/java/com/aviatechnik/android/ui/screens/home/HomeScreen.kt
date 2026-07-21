@@ -74,6 +74,7 @@ fun HomeScreen(
     onLoggedOut: () -> Unit,
     onOpenWorkorder: (Int) -> Unit = {},
     onOpenProfile: () -> Unit = {},
+    onCreateDraft: () -> Unit = {},
     vm: HomeViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsState()
@@ -119,7 +120,11 @@ fun HomeScreen(
                             .clickable(onClick = onOpenProfile),
                     ) {
                         Text(
-                            if (section == "materials") "Materials" else "Workorders",
+                            when (section) {
+                                "materials" -> "Materials"
+                                "drafts" -> "Drafts"
+                                else -> "Workorders"
+                            },
                             style = MaterialTheme.typography.titleLarge,
                         )
                         Text(
@@ -144,11 +149,22 @@ fun HomeScreen(
                         onClick = { section = "materials" },
                         label = { Text("Materials") },
                     )
+                    // role-gated: capability from bootstrap (Shipping/Manager/Admin)
+                    if (b.user.capabilities["can_create_draft"] == true) {
+                        androidx.compose.material3.FilterChip(
+                            selected = section == "drafts",
+                            onClick = { section = "drafts" },
+                            label = { Text("Drafts") },
+                        )
+                    }
                 }
-                if (section == "materials") {
-                    com.aviatechnik.android.ui.screens.materials.MaterialsSection()
-                } else {
-                    com.aviatechnik.android.ui.screens.workorders.WorkordersSection(
+                when (section) {
+                    "materials" -> com.aviatechnik.android.ui.screens.materials.MaterialsSection()
+                    "drafts" -> com.aviatechnik.android.ui.screens.drafts.DraftsSection(
+                        onOpenWorkorder = onOpenWorkorder,
+                        onCreateDraft = onCreateDraft,
+                    )
+                    else -> com.aviatechnik.android.ui.screens.workorders.WorkordersSection(
                         onOpenWorkorder = onOpenWorkorder,
                     )
                 }

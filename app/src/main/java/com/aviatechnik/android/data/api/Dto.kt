@@ -407,6 +407,44 @@ data class PasswordRequest(
     @SerialName("password_confirmation") val passwordConfirmation: String,
 )
 
+/* ── drafts ────────────────────────────────────────────────────── */
+
+@Serializable
+data class DraftOptionsData(
+    @SerialName("draft_number") val draftNumber: Long? = null,
+    val units: List<UnitDto> = emptyList(),
+    val customers: List<NamedDto> = emptyList(),
+)
+
+@Serializable
+data class DraftCreateRequest(
+    @SerialName("unit_id") val unitId: Int,
+    @SerialName("customer_id") val customerId: Int,
+    @SerialName("serial_number") val serialNumber: String? = null,
+    val description: String? = null,
+    @SerialName("open_at") val openAt: String? = null,
+    @SerialName("customer_po") val customerPo: String? = null,
+    @SerialName("external_damage") val externalDamage: Boolean = false,
+    @SerialName("received_disassembly") val receivedDisassembly: Boolean = false,
+    @SerialName("disassembly_upon_arrival") val disassemblyUponArrival: Boolean = false,
+    @SerialName("nameplate_missing") val nameplateMissing: Boolean = false,
+    @SerialName("extra_parts") val extraParts: Boolean = false,
+    @SerialName("storage_rack") val storageRack: Int? = null,
+    @SerialName("storage_level") val storageLevel: Int? = null,
+    @SerialName("storage_column") val storageColumn: Int? = null,
+    @SerialName("arrival_box_status") val arrivalBoxStatus: String? = null,
+    @SerialName("arrival_box_notes") val arrivalBoxNotes: String? = null,
+)
+
+@Serializable
+data class DraftUnitRequest(
+    @SerialName("part_number") val partNumber: String,
+    val name: String? = null,
+)
+
+@Serializable
+data class DraftUnitData(val unit: UnitDto)
+
 /* ── bootstrap ─────────────────────────────────────────────────────
  * The payload is large and server-driven; the shell only needs a few
  * typed fields — the rest stays as JSON for the screens that use it. */
