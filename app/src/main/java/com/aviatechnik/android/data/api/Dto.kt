@@ -171,7 +171,8 @@ data class ArrivalBoxDto(
     val status: String? = null,
     @SerialName("status_label") val statusLabel: String? = null,
     val notes: String? = null,
-    @SerialName("recorded_by") val recordedBy: String? = null,
+    @SerialName("recorded_by") val recordedBy: Long? = null,       // user id (int on the wire)
+    @SerialName("recorded_by_name") val recordedByName: String? = null, // Android contour extra
     @SerialName("recorded_at") val recordedAt: String? = null,
     @SerialName("can_update") val canUpdate: Boolean = false,
 )
@@ -192,6 +193,31 @@ data class MediaDto(
     @SerialName("mime_type") val mimeType: String? = null,
     @SerialName("thumb_url") val thumbUrl: String? = null,
     val url: String? = null,
+)
+
+@Serializable
+data class StorageUpdateRequest(
+    @SerialName("storage_rack") val rack: Int? = null,
+    @SerialName("storage_level") val level: Int? = null,
+    @SerialName("storage_column") val column: Int? = null,
+)
+
+@Serializable
+data class StorageUpdateData(val storage: StorageDto)
+
+@Serializable
+data class ArrivalBoxUpdateRequest(
+    @SerialName("arrival_box_status") val status: String? = null,
+    @SerialName("arrival_box_notes") val notes: String? = null,
+)
+
+@Serializable
+data class ArrivalBoxUpdateData(@SerialName("arrival_box") val arrivalBox: ArrivalBoxDto)
+
+@Serializable
+data class MediaUploadData(
+    val media: List<MediaDto> = emptyList(),
+    @SerialName("photo_count") val photoCount: Int = 0,
 )
 
 /* ── bootstrap ─────────────────────────────────────────────────────

@@ -2,7 +2,10 @@ package com.aviatechnik.android.data.api
 
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -31,4 +34,18 @@ interface AviaApi {
 
     @GET("workorders/{id}")
     suspend fun workorder(@Path("id") id: Int): Envelope<WorkorderDetailData>
+
+    @PATCH("workorders/{id}/storage")
+    suspend fun updateStorage(@Path("id") id: Int, @Body body: StorageUpdateRequest): Envelope<StorageUpdateData>
+
+    @PATCH("workorders/{id}/arrival-box")
+    suspend fun updateArrivalBox(@Path("id") id: Int, @Body body: ArrivalBoxUpdateRequest): Envelope<ArrivalBoxUpdateData>
+
+    @Multipart
+    @POST("workorders/{id}/media")
+    suspend fun uploadWorkorderPhoto(
+        @Path("id") id: Int,
+        @Part photo: okhttp3.MultipartBody.Part, // form field name: photos[]
+        @Part("category") category: okhttp3.RequestBody,
+    ): Envelope<MediaUploadData>
 }
