@@ -3,6 +3,7 @@ package com.aviatechnik.android.data.api
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 /** Android contour of the avia mobile API — base path /api/android/ */
@@ -27,4 +28,7 @@ interface AviaApi {
         @Query("search") search: String = "",
         @Query("include_done") includeDone: Boolean = false,
     ): Envelope<WorkordersData>
+
+    @GET("workorders/{id}")
+    suspend fun workorder(@Path("id") id: Int): Envelope<WorkorderDetailData>
 }

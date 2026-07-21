@@ -70,6 +70,7 @@ class HomeViewModel @Inject constructor(
 @Composable
 fun HomeScreen(
     onLoggedOut: () -> Unit,
+    onOpenWorkorder: (Int) -> Unit = {},
     vm: HomeViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsState()
@@ -117,7 +118,7 @@ fun HomeScreen(
                     Button(onClick = vm::logout) { Text("Logout") }
                 }
                 com.aviatechnik.android.ui.screens.workorders.WorkordersSection(
-                    onOpenWorkorder = { /* detail screen — next iteration */ },
+                    onOpenWorkorder = onOpenWorkorder,
                 )
             }
         }

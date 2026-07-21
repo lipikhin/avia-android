@@ -1,6 +1,7 @@
 package com.aviatechnik.android.data.repository
 
 import com.aviatechnik.android.data.api.AviaApi
+import com.aviatechnik.android.data.api.WorkorderDetailData
 import com.aviatechnik.android.data.api.WorkordersData
 import com.aviatechnik.android.data.auth.TokenStore
 import javax.inject.Inject
@@ -13,4 +14,7 @@ class WorkorderRepository @Inject constructor(
 ) {
     suspend fun list(scope: String, includeDone: Boolean): ApiResult<WorkordersData> =
         apiCall(tokenStore) { api.workorders(scope = scope, includeDone = includeDone) }
+
+    suspend fun detail(id: Int): ApiResult<WorkorderDetailData> =
+        apiCall(tokenStore) { api.workorder(id) }
 }

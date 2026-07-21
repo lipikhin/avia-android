@@ -120,6 +120,80 @@ data class UnitDto(
     val description: String? = null,
 )
 
+/* ── workorder detail ──────────────────────────────────────────── */
+
+@Serializable
+data class WorkorderDetailData(
+    val workorder: WorkorderDetailDto,
+)
+
+@Serializable
+data class NamedDto(
+    val id: Int,
+    val name: String? = null,
+)
+
+@Serializable
+data class WorkorderDetailDto(
+    val id: Int,
+    val number: Long,
+    @SerialName("number_display") val numberDisplay: String? = null,
+    @SerialName("is_draft") val isDraft: Boolean = false,
+    @SerialName("is_done") val isDone: Boolean = false,
+    @SerialName("done_at") val doneAt: String? = null,
+    @SerialName("open_at") val openAt: String? = null,
+    val approved: Boolean = false,
+    val owner: NamedDto? = null,
+    @SerialName("serial_number") val serialNumber: String? = null,
+    val description: String? = null,
+    @SerialName("customer_po") val customerPo: String? = null,
+    val customer: NamedDto? = null,
+    val instruction: NamedDto? = null,
+    val unit: UnitDto? = null,
+    @SerialName("approve_at") val approveAt: String? = null,
+    @SerialName("approve_name") val approveName: String? = null,
+    val storage: StorageDto? = null,
+    @SerialName("arrival_box") val arrivalBox: ArrivalBoxDto? = null,
+    @SerialName("media_groups") val mediaGroups: List<MediaGroupDto> = emptyList(),
+)
+
+@Serializable
+data class StorageDto(
+    val rack: Int? = null,
+    val level: Int? = null,
+    val column: Int? = null,
+    val location: String? = null,
+    @SerialName("can_update") val canUpdate: Boolean = false,
+)
+
+@Serializable
+data class ArrivalBoxDto(
+    val status: String? = null,
+    @SerialName("status_label") val statusLabel: String? = null,
+    val notes: String? = null,
+    @SerialName("recorded_by") val recordedBy: String? = null,
+    @SerialName("recorded_at") val recordedAt: String? = null,
+    @SerialName("can_update") val canUpdate: Boolean = false,
+)
+
+@Serializable
+data class MediaGroupDto(
+    val key: String,
+    val label: String? = null,
+    val count: Int = 0,
+    val media: List<MediaDto> = emptyList(),
+)
+
+@Serializable
+data class MediaDto(
+    val id: Int,
+    val name: String? = null,
+    @SerialName("file_name") val fileName: String? = null,
+    @SerialName("mime_type") val mimeType: String? = null,
+    @SerialName("thumb_url") val thumbUrl: String? = null,
+    val url: String? = null,
+)
+
 /* ── bootstrap ─────────────────────────────────────────────────────
  * The payload is large and server-driven; the shell only needs a few
  * typed fields — the rest stays as JSON for the screens that use it. */
