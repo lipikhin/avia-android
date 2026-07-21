@@ -31,16 +31,13 @@ object NetworkModule {
     @Singleton
     fun okHttp(tokenStore: TokenStore): OkHttpClient {
         val auth = Interceptor { chain ->
-            val token = tokenStore.token
-            val request = if (token != null) {
-                chain.request().newBuilder()
-                    .header("Authorization", "Bearer $token")
-                    .header("Accept", "application/json")
-                    .build()
-            } else {
-                chain.request().newBuilder().header("Accept", "application/json").build()
+            val builder = chain.request().newBuilder().header("Accept", "application/json")
+            tokenStore.token?.let { builder.header("Authorization", "Bearer $it") }
+            // Debug against local OSPanel: vhost is picked by the Host header
+            if (BuildConfig.DEBUG_HOST_HEADER.isNotEmpty()) {
+                builder.header("Host", BuildConfig.DEBUG_HOST_HEADER)
             }
-            chain.proceed(request)
+            chain.proceed(builder.build())
         }
         val builder = OkHttpClient.Builder().addInterceptor(auth)
         if (BuildConfig.DEBUG) {

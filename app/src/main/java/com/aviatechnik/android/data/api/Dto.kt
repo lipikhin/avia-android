@@ -73,8 +73,15 @@ data class UserDto(
     val id: Int,
     val name: String? = null,
     val email: String? = null,
-    val role: JsonObject? = null,
-    val team: JsonObject? = null,
+    val role: String? = null,          // server sends the role NAME, not an object
+    val team: TeamDto? = null,
+    val capabilities: Map<String, Boolean> = emptyMap(),
+)
+
+@Serializable
+data class TeamDto(
+    val id: Int,
+    val name: String? = null,
 )
 
 /* ── bootstrap ─────────────────────────────────────────────────────

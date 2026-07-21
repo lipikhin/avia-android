@@ -20,12 +20,17 @@ android {
 
         // Android contour of the mobile API (see docs/mobile-native-android-brief.md in the avia repo)
         buildConfigField("String", "API_BASE_URL", "\"https://aviatechnik.ca/api/android/\"")
+        buildConfigField("String", "DEBUG_HOST_HEADER", "\"\"")
     }
 
     buildTypes {
         debug {
-            // Local backend for development against OSPanel
-            buildConfigField("String", "API_BASE_URL", "\"http://avia/api/android/\"")
+            // Local OSPanel backend over USB: `adb reverse tcp:8080 tcp:80`
+            // maps the device's 127.0.0.1:8080 to the PC's port 80; OSPanel
+            // picks the vhost by the Host header — so we send Host: avia.
+            // (Emulator alternative: 10.0.2.2 instead of 127.0.0.1:8080.)
+            buildConfigField("String", "API_BASE_URL", "\"http://127.0.0.1:8080/api/android/\"")
+            buildConfigField("String", "DEBUG_HOST_HEADER", "\"avia\"")
         }
         release {
             isMinifyEnabled = false
