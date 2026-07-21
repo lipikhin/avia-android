@@ -70,6 +70,17 @@ import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
 
+/**
+ * Category of a TDR row — mirrors the web Measurements split: working parts,
+ * Order New (replacement ordered) and Missing live on separate "pages".
+ * Matching is by dictionary names, same as the web JS and the server.
+ */
+private fun tdrCategory(tdr: TdrAttachmentDto): String = when {
+    tdr.codeName?.equals("Missing", ignoreCase = true) == true -> "missing"
+    tdr.necessariesName?.contains("order new", ignoreCase = true) == true -> "ordernew"
+    else -> "parts"
+}
+
 data class ComponentsUiState(
     val loading: Boolean = true,
     val error: String? = null,
@@ -231,6 +242,27 @@ fun ComponentsScreen(onBack: () -> Unit, vm: ComponentsViewModel = hiltViewModel
                 modifier = Modifier.padding(horizontal = 16.dp))
         }
 
+        // Parts | Order New | Missing — separate "pages" as filter chips
+        var filter by rememberSaveable { mutableStateOf("parts") }
+        val allTdrs = data?.attachedComponents?.flatMap { it.tdrs } ?: emptyList()
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp),
+        ) {
+            listOf(
+                "parts" to "Parts",
+                "ordernew" to "Order New",
+                "missing" to "Missing",
+            ).forEach { (key, label) ->
+                val count = allTdrs.count { tdrCategory(it) == key }
+                androidx.compose.material3.FilterChip(
+                    selected = filter == key,
+                    onClick = { filter = key },
+                    label = { Text(if (count > 0) "$label ($count)" else label) },
+                )
+            }
+        }
+
         when {
             state.loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
@@ -238,24 +270,40 @@ fun ComponentsScreen(onBack: () -> Unit, vm: ComponentsViewModel = hiltViewModel
             state.error != null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(state.error!!, color = MaterialTheme.colorScheme.error)
             }
-            else -> LazyColumn(
+            else -> {
+                // A component may carry mixed TDRs — on every page it shows only
+                // the rows of the current category.
+                val shown = data!!.attachedComponents.mapNotNull { comp ->
+                    val rows = comp.tdrs.filter { tdrCategory(it) == filter }
+                    if (rows.isEmpty()) null else comp to rows
+                }
+                LazyColumn(
                 Modifier.fillMaxSize(),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                item {
-                    Button(onClick = { pickingComponent = true }, modifier = Modifier.fillMaxWidth()) {
-                        Text("+ Attach part")
-                    }
-                }
-                if (data!!.attachedComponents.isEmpty()) {
+                if (filter == "parts") {
                     item {
-                        Box(Modifier.fillMaxWidth().padding(top = 40.dp), contentAlignment = Alignment.Center) {
-                            Text("No parts attached yet", color = AviaTextSecondary)
+                        Button(onClick = { pickingComponent = true }, modifier = Modifier.fillMaxWidth()) {
+                            Text("+ Attach part")
                         }
                     }
                 }
-                items(data.attachedComponents, key = { it.id }) { comp ->
+                if (shown.isEmpty()) {
+                    item {
+                        Box(Modifier.fillMaxWidth().padding(top = 40.dp), contentAlignment = Alignment.Center) {
+                            Text(
+                                when (filter) {
+                                    "ordernew" -> "No Order New parts"
+                                    "missing" -> "No missing parts"
+                                    else -> "No parts attached yet"
+                                },
+                                color = AviaTextSecondary,
+                            )
+                        }
+                    }
+                }
+                items(shown, key = { it.first.id }) { (comp, rows) ->
                     Card(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -279,7 +327,7 @@ fun ComponentsScreen(onBack: () -> Unit, vm: ComponentsViewModel = hiltViewModel
                                     Icon(Icons.Filled.PhotoCamera, contentDescription = "Part photo", tint = AviaDeepSkyBlue)
                                 }
                             }
-                            comp.tdrs.forEach { tdr ->
+                            rows.forEach { tdr ->
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
@@ -307,6 +355,7 @@ fun ComponentsScreen(onBack: () -> Unit, vm: ComponentsViewModel = hiltViewModel
                             }
                         }
                     }
+                }
                 }
             }
         }
