@@ -368,6 +368,45 @@ data class AttachmentRequest(
 @Serializable
 data class AttachmentData(val attachment: TdrAttachmentDto)
 
+/* ── profile ───────────────────────────────────────────────────── */
+
+@Serializable
+data class ProfileData(
+    val profile: ProfileDto,
+    val teams: List<NamedDto> = emptyList(),
+)
+
+@Serializable
+data class ProfileUpdateData(val profile: ProfileDto)
+
+@Serializable
+data class ProfileDto(
+    val id: Int,
+    val name: String? = null,
+    val phone: String? = null,
+    val birthday: String? = null,
+    val email: String? = null,
+    val stamp: String? = null,
+    val team: NamedDto? = null,
+    val avatar: MediaDto? = null,
+)
+
+@Serializable
+data class ProfileUpdateRequest(
+    val name: String,
+    val phone: String? = null,
+    val birthday: String? = null,
+    val stamp: String,
+    @SerialName("team_id") val teamId: Int,
+)
+
+@Serializable
+data class PasswordRequest(
+    @SerialName("old_pass") val oldPass: String,
+    val password: String,
+    @SerialName("password_confirmation") val passwordConfirmation: String,
+)
+
 /* ── bootstrap ─────────────────────────────────────────────────────
  * The payload is large and server-driven; the shell only needs a few
  * typed fields — the rest stays as JSON for the screens that use it. */

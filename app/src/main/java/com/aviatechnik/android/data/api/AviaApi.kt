@@ -63,6 +63,28 @@ interface AviaApi {
     @GET("workorders/{id}/processes")
     suspend fun processes(@Path("id") id: Int): Envelope<ProcessesData>
 
+    @GET("profile")
+    suspend fun profile(): Envelope<ProfileData>
+
+    @PUT("profile")
+    suspend fun updateProfile(@Body body: ProfileUpdateRequest): Envelope<ProfileUpdateData>
+
+    /** Avatar path: Laravel can't parse multipart on PUT → POST + _method=PUT. */
+    @Multipart
+    @POST("profile")
+    suspend fun updateProfileWithAvatar(
+        @Part("_method") method: okhttp3.RequestBody,
+        @Part("name") name: okhttp3.RequestBody,
+        @Part("phone") phone: okhttp3.RequestBody?,
+        @Part("birthday") birthday: okhttp3.RequestBody?,
+        @Part("stamp") stamp: okhttp3.RequestBody,
+        @Part("team_id") teamId: okhttp3.RequestBody,
+        @Part file: okhttp3.MultipartBody.Part,
+    ): Envelope<ProfileUpdateData>
+
+    @POST("profile/password")
+    suspend fun updatePassword(@Body body: PasswordRequest): Envelope<kotlinx.serialization.json.JsonObject?>
+
     @GET("workorders/{id}/components")
     suspend fun components(@Path("id") id: Int): Envelope<ComponentsData>
 

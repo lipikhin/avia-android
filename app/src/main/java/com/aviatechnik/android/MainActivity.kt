@@ -62,7 +62,11 @@ fun AviaNavHost() {
                     nav.navigate(Routes.LOGIN) { popUpTo(Routes.HOME) { inclusive = true } }
                 },
                 onOpenWorkorder = { id -> nav.navigate("wo/$id") },
+                onOpenProfile = { nav.navigate("profile") },
             )
+        }
+        composable("profile") {
+            com.aviatechnik.android.ui.screens.profile.ProfileScreen(onBack = { nav.popBackStack() })
         }
         composable(
             route = "wo/{id}",

@@ -1,5 +1,6 @@
 package com.aviatechnik.android.ui.screens.home
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -72,6 +73,7 @@ class HomeViewModel @Inject constructor(
 fun HomeScreen(
     onLoggedOut: () -> Unit,
     onOpenWorkorder: (Int) -> Unit = {},
+    onOpenProfile: () -> Unit = {},
     vm: HomeViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsState()
@@ -111,13 +113,17 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 10.dp),
                 ) {
-                    Column(Modifier.weight(1f)) {
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .clickable(onClick = onOpenProfile),
+                    ) {
                         Text(
                             if (section == "materials") "Materials" else "Workorders",
                             style = MaterialTheme.typography.titleLarge,
                         )
                         Text(
-                            b.user.name ?: b.user.email ?: "",
+                            "${b.user.name ?: b.user.email ?: ""} · profile",
                             style = MaterialTheme.typography.labelSmall,
                             color = com.aviatechnik.android.ui.theme.AviaTextSecondary,
                         )
