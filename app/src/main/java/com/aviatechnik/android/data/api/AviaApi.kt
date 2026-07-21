@@ -63,6 +63,25 @@ interface AviaApi {
     @GET("workorders/{id}/processes")
     suspend fun processes(@Path("id") id: Int): Envelope<ProcessesData>
 
+    @GET("workorders/{id}/components")
+    suspend fun components(@Path("id") id: Int): Envelope<ComponentsData>
+
+    @POST("workorders/{id}/component-attachments")
+    suspend fun storeAttachment(@Path("id") id: Int, @Body body: AttachmentRequest): Envelope<AttachmentData>
+
+    @PATCH("component-attachments/{tdrId}")
+    suspend fun updateAttachment(@Path("tdrId") tdrId: Int, @Body body: AttachmentRequest): Envelope<AttachmentData>
+
+    @retrofit2.http.DELETE("component-attachments/{tdrId}")
+    suspend fun deleteAttachment(@Path("tdrId") tdrId: Int): Envelope<kotlinx.serialization.json.JsonObject>
+
+    @Multipart
+    @POST("components/{id}/photo")
+    suspend fun uploadComponentPhoto(
+        @Path("id") id: Int,
+        @Part photo: okhttp3.MultipartBody.Part, // form field name: photo
+    ): Envelope<kotlinx.serialization.json.JsonObject>
+
     @GET("materials")
     suspend fun materials(): Envelope<MaterialsData>
 

@@ -73,7 +73,14 @@ fun AviaNavHost() {
                 onBack = { nav.popBackStack() },
                 onOpenTasks = { nav.navigate("wo/$id/tasks") },
                 onOpenProcesses = { nav.navigate("wo/$id/processes") },
+                onOpenComponents = { nav.navigate("wo/$id/components") },
             )
+        }
+        composable(
+            route = "wo/{id}/components",
+            arguments = listOf(navArgument("id") { type = NavType.IntType }),
+        ) {
+            com.aviatechnik.android.ui.screens.components.ComponentsScreen(onBack = { nav.popBackStack() })
         }
         composable(
             route = "wo/{id}/tasks",

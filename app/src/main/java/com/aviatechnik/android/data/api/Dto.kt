@@ -320,6 +320,54 @@ data class MaterialUpdateRequest(val description: String? = null)
 @Serializable
 data class MaterialUpdateData(val material: MaterialDto)
 
+/* ── components / TDR ──────────────────────────────────────────── */
+
+@Serializable
+data class ComponentsData(
+    @SerialName("attached_components") val attachedComponents: List<ComponentDto> = emptyList(),
+    @SerialName("manual_components") val manualComponents: List<ComponentDto> = emptyList(),
+    val codes: List<NamedDto> = emptyList(),
+    val necessaries: List<NamedDto> = emptyList(),
+)
+
+@Serializable
+data class ComponentDto(
+    val id: Int,
+    val name: String? = null,
+    @SerialName("ipl_num") val iplNum: String? = null,
+    @SerialName("part_number") val partNumber: String? = null,
+    @SerialName("eff_code") val effCode: String? = null,
+    @SerialName("is_bush") val isBush: Boolean = false,
+    @SerialName("log_card") val logCard: Boolean = false,
+    val text: String? = null,
+    val photo: MediaDto? = null,
+    val tdrs: List<TdrAttachmentDto> = emptyList(),
+)
+
+@Serializable
+data class TdrAttachmentDto(
+    val id: Int,
+    @SerialName("component_id") val componentId: Int? = null,
+    @SerialName("code_id") val codeId: Int? = null,
+    @SerialName("code_name") val codeName: String? = null,
+    @SerialName("necessaries_id") val necessariesId: Int? = null,
+    @SerialName("necessaries_name") val necessariesName: String? = null,
+    val qty: Int? = null,
+    @SerialName("serial_number") val serialNumber: String? = null,
+)
+
+@Serializable
+data class AttachmentRequest(
+    @SerialName("component_id") val componentId: Int? = null,
+    @SerialName("code_id") val codeId: Int,
+    @SerialName("necessaries_id") val necessariesId: Int? = null,
+    val qty: Int? = null,
+    @SerialName("serial_number") val serialNumber: String? = null,
+)
+
+@Serializable
+data class AttachmentData(val attachment: TdrAttachmentDto)
+
 /* ── bootstrap ─────────────────────────────────────────────────────
  * The payload is large and server-driven; the shell only needs a few
  * typed fields — the rest stays as JSON for the screens that use it. */

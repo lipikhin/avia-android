@@ -157,6 +157,7 @@ fun WorkorderDetailScreen(
     onBack: () -> Unit,
     onOpenTasks: () -> Unit = {},
     onOpenProcesses: () -> Unit = {},
+    onOpenComponents: () -> Unit = {},
     vm: WorkorderDetailViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsState()
@@ -206,7 +207,7 @@ fun WorkorderDetailScreen(
             state.error != null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(state.error!!, color = MaterialTheme.colorScheme.error)
             }
-            else -> DetailBody(state.wo!!, vm, onOpenTasks, onOpenProcesses)
+            else -> DetailBody(state.wo!!, vm, onOpenTasks, onOpenProcesses, onOpenComponents)
         }
     }
 }
@@ -217,6 +218,7 @@ private fun DetailBody(
     vm: WorkorderDetailViewModel,
     onOpenTasks: () -> Unit = {},
     onOpenProcesses: () -> Unit = {},
+    onOpenComponents: () -> Unit = {},
 ) {
     val context = LocalContext.current
 
@@ -259,6 +261,7 @@ private fun DetailBody(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             OutlinedButton(onClick = onOpenTasks, modifier = Modifier.weight(1f)) { Text("Tasks") }
             OutlinedButton(onClick = onOpenProcesses, modifier = Modifier.weight(1f)) { Text("Processes") }
+            OutlinedButton(onClick = onOpenComponents, modifier = Modifier.weight(1f)) { Text("Parts") }
         }
 
         SectionCard("Info") {
