@@ -84,6 +84,42 @@ data class TeamDto(
     val name: String? = null,
 )
 
+/* ── workorders ────────────────────────────────────────────────── */
+
+@Serializable
+data class WorkordersData(
+    val items: List<WorkorderItemDto> = emptyList(),
+)
+
+@Serializable
+data class WorkorderItemDto(
+    val id: Int,
+    val number: Long,
+    @SerialName("number_display") val numberDisplay: String? = null,
+    @SerialName("is_draft") val isDraft: Boolean = false,
+    @SerialName("is_done") val isDone: Boolean = false,
+    @SerialName("done_at") val doneAt: String? = null,
+    @SerialName("open_at") val openAt: String? = null,
+    val approved: Boolean = false,
+    @SerialName("owned_by_current_user") val ownedByCurrentUser: Boolean = false,
+    val customer: CustomerDto? = null,
+    val unit: UnitDto? = null,
+)
+
+@Serializable
+data class CustomerDto(
+    val id: Int,
+    val name: String? = null,
+)
+
+@Serializable
+data class UnitDto(
+    val id: Int,
+    @SerialName("part_number") val partNumber: String? = null,
+    val name: String? = null,
+    val description: String? = null,
+)
+
 /* ── bootstrap ─────────────────────────────────────────────────────
  * The payload is large and server-driven; the shell only needs a few
  * typed fields — the rest stays as JSON for the screens that use it. */

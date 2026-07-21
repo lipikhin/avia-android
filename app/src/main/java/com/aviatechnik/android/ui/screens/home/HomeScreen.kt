@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -78,36 +78,47 @@ fun HomeScreen(
         androidx.compose.runtime.LaunchedEffect(Unit) { onLoggedOut() }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        when {
-            state.loading -> CircularProgressIndicator()
-            state.error != null -> {
-                Text(state.error!!, color = MaterialTheme.colorScheme.error)
-                Spacer(Modifier.height(12.dp))
-                Button(onClick = onLoggedOut) { Text("Back to login") }
-            }
-            else -> {
-                val b = state.bootstrap!!
-                Text("Welcome, ${b.user.name ?: b.user.email ?: "user"}", style = MaterialTheme.typography.titleLarge)
-                Spacer(Modifier.height(8.dp))
-                Text("Menu mode: ${b.menuMode}", style = MaterialTheme.typography.bodyMedium)
-                Text("Available: ${b.availableMenuModes.joinToString()}", style = MaterialTheme.typography.bodyMedium)
-                Spacer(Modifier.height(20.dp))
-                Card(Modifier.fillMaxWidth()) {
-                    Text(
-                        "Sections come next: workorders → tasks → components → materials → paint → machining",
-                        modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+    when {
+        state.loading -> Column(
+            Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) { CircularProgressIndicator() }
+
+        state.error != null -> Column(
+            Modifier.fillMaxSize().padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(state.error!!, color = MaterialTheme.colorScheme.error)
+            Spacer(Modifier.height(12.dp))
+            Button(onClick = onLoggedOut) { Text("Back to login") }
+        }
+
+        else -> {
+            // Shell: header + current section. v1 opens on Workorders (parity
+            // with mobile web); other sections join as they are implemented.
+            val b = state.bootstrap!!
+            Column(Modifier.fillMaxSize()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Workorders", style = MaterialTheme.typography.titleLarge)
+                        Text(
+                            b.user.name ?: b.user.email ?: "",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = com.aviatechnik.android.ui.theme.AviaTextSecondary,
+                        )
+                    }
+                    Button(onClick = vm::logout) { Text("Logout") }
                 }
-                Spacer(Modifier.height(20.dp))
-                Button(onClick = vm::logout) { Text("Logout") }
+                com.aviatechnik.android.ui.screens.workorders.WorkordersSection(
+                    onOpenWorkorder = { /* detail screen — next iteration */ },
+                )
             }
         }
     }
