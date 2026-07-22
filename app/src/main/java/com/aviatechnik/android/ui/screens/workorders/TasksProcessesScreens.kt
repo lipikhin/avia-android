@@ -1,6 +1,10 @@
 package com.aviatechnik.android.ui.screens.workorders
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -342,24 +346,31 @@ private fun GroupButton(name: String, done: Boolean, selected: Boolean, onClick:
     }
 }
 
-/** "Label: 2026-07-21" — tap to pick a date when editable. */
+/** "Label: 2026-07-21" — tap to pick a date when editable. An editable
+ *  field is drawn as an outlined chip (comfortable finger target); a
+ *  read-only one stays plain text. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateField(label: String, value: String?, editable: Boolean, onPick: (String) -> Unit) {
     var open by remember { mutableStateOf(false) }
 
-    Column(
-        if (editable) Modifier.clickable { open = true } else Modifier,
-    ) {
+    val box =
+        if (editable) {
+            Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .clickable { open = true }
+                .border(1.dp, AviaDeepSkyBlue.copy(alpha = 0.6f), RoundedCornerShape(8.dp))
+                .widthIn(min = 96.dp)
+                .padding(horizontal = 12.dp, vertical = 6.dp)
+        } else {
+            Modifier.padding(vertical = 6.dp)
+        }
+    Column(box) {
         Text(label, style = MaterialTheme.typography.labelSmall, color = AviaTextSecondary)
         Text(
             value ?: "—",
             style = MaterialTheme.typography.bodySmall,
-            color = when {
-                !editable -> MaterialTheme.colorScheme.onSurface
-                value == null -> AviaDeepSkyBlue
-                else -> AviaDeepSkyBlue
-            },
+            color = if (editable) AviaDeepSkyBlue else MaterialTheme.colorScheme.onSurface,
         )
     }
 
