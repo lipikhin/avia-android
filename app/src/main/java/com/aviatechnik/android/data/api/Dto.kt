@@ -251,6 +251,7 @@ data class TaskDto(
     @SerialName("has_start_date") val hasStartDate: Boolean = false,
     @SerialName("can_edit_start") val canEditStart: Boolean = false,
     @SerialName("can_edit_finish") val canEditFinish: Boolean = false,
+    @SerialName("restricted_finish") val restrictedFinish: Boolean = false,
     val main: MainDto? = null,
 )
 

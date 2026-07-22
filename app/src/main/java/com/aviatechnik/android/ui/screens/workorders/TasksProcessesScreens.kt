@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -97,6 +98,7 @@ class TasksViewModel @Inject constructor(
     }
 }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun TasksScreen(onGo: (String) -> Unit, vm: TasksViewModel = hiltViewModel()) {
     val state by vm.state.collectAsState()
@@ -108,43 +110,83 @@ fun TasksScreen(onGo: (String) -> Unit, vm: TasksViewModel = hiltViewModel()) {
         when {
             state.loading -> Centered { CircularProgressIndicator() }
             state.error != null -> Centered { Text(state.error!!, color = MaterialTheme.colorScheme.error) }
-            else -> LazyColumn(
-                Modifier.fillMaxSize(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                items(state.data!!.groups, key = { it.id }) { group ->
-                    Card(Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    group.name ?: "",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = if (group.isDone) AviaTextSecondary else AviaDeepSkyBlue,
-                                )
-                                if (group.isDone) Text("  ✓ done", style = MaterialTheme.typography.labelSmall, color = AviaTextSecondary)
-                            }
-                            group.tasks.forEach { task ->
-                                Column(Modifier.fillMaxWidth().padding(top = 2.dp)) {
-                                    Text(task.name ?: "", style = MaterialTheme.typography.bodyMedium)
-                                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                        if (task.hasStartDate) {
+            else -> {
+                // Tasks the role cannot edit (server: restricted_date_task_ids)
+                // and ignored rows never show on mobile; a group with nothing
+                // visible loses its button too.
+                fun visibleTasks(g: com.aviatechnik.android.data.api.TaskGroupDto) =
+                    g.tasks.filter { t ->
+                        t.main?.ignoreRow != true &&
+                            (t.canEditFinish || (t.hasStartDate && t.canEditStart))
+                    }
+                val groups = state.data!!.groups.filter { visibleTasks(it).isNotEmpty() }
+                // 0 = "not chosen yet" → the first unfinished group (desktop parity)
+                var selectedId by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(0) }
+                val currentId =
+                    if (selectedId != 0 && groups.any { it.id == selectedId }) selectedId
+                    else groups.firstOrNull { !it.isDone }?.id ?: groups.firstOrNull()?.id
+                val current = groups.firstOrNull { it.id == currentId }
+
+                Column(Modifier.fillMaxSize()) {
+                    // Group buttons — green outline when the group is finished,
+                    // red otherwise (desktop main-gt-buttons parity).
+                    androidx.compose.foundation.layout.FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                    ) {
+                        groups.forEach { g ->
+                            GroupButton(
+                                name = g.name ?: "",
+                                done = g.isDone,
+                                selected = g.id == currentId,
+                                onClick = { selectedId = g.id },
+                            )
+                        }
+                    }
+
+                    val visible = current?.let { visibleTasks(it) }.orEmpty()
+                    if (visible.isEmpty()) {
+                        Centered { Text("No tasks", color = AviaTextSecondary) }
+                    } else {
+                        LazyColumn(
+                            Modifier.fillMaxSize(),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                                start = 12.dp, end = 12.dp, bottom = 12.dp,
+                            ),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            items(visible, key = { it.id }) { task ->
+                                Card(Modifier.fillMaxWidth()) {
+                                    Column(Modifier.padding(10.dp)) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                        ) {
+                                            Text(
+                                                task.name ?: "",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                modifier = Modifier.weight(1f),
+                                            )
+                                            if (task.hasStartDate) {
+                                                DateField(
+                                                    label = "Start",
+                                                    value = task.main?.dateStart,
+                                                    editable = task.canEditStart,
+                                                    onPick = { vm.setDate(task.id, "start", it) },
+                                                )
+                                            }
                                             DateField(
-                                                label = "Start",
-                                                value = task.main?.dateStart,
-                                                editable = task.canEditStart,
-                                                onPick = { vm.setDate(task.id, "start", it) },
+                                                label = "Finish",
+                                                value = task.main?.dateFinish,
+                                                editable = task.canEditFinish,
+                                                onPick = { vm.setDate(task.id, "finish", it) },
                                             )
                                         }
-                                        DateField(
-                                            label = "Finish",
-                                            value = task.main?.dateFinish,
-                                            editable = task.canEditFinish,
-                                            onPick = { vm.setDate(task.id, "finish", it) },
-                                        )
                                         task.main?.user?.name?.let {
-                                            Text(it, style = MaterialTheme.typography.labelSmall, color = AviaTextSecondary,
-                                                modifier = Modifier.align(Alignment.CenterVertically))
+                                            Text(it, style = MaterialTheme.typography.labelSmall, color = AviaTextSecondary)
                                         }
                                     }
                                 }
@@ -276,6 +318,28 @@ private fun ScreenScaffold(
 @Composable
 private fun Centered(content: @Composable () -> Unit) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { content() }
+}
+
+/** Desktop parity: btn-outline-success when the group is finished,
+ *  btn-outline-danger otherwise; the selected one gets a tinted fill. */
+@Composable
+private fun GroupButton(name: String, done: Boolean, selected: Boolean, onClick: () -> Unit) {
+    val color = if (done) androidx.compose.ui.graphics.Color(0xFF198754)
+    else androidx.compose.ui.graphics.Color(0xFFDC3545)
+    // Desktop parity: the active group button gets a white edge.
+    val border = if (selected) androidx.compose.ui.graphics.Color.White else color
+    androidx.compose.material3.OutlinedButton(
+        onClick = onClick,
+        border = androidx.compose.foundation.BorderStroke(if (selected) 2.dp else 1.dp, border),
+        colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+            contentColor = color,
+            containerColor = androidx.compose.ui.graphics.Color.Transparent,
+        ),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+        modifier = Modifier.height(32.dp),
+    ) {
+        Text(name, style = MaterialTheme.typography.labelMedium)
+    }
 }
 
 /** "Label: 2026-07-21" — tap to pick a date when editable. */
