@@ -496,9 +496,13 @@ private fun PhotoCarousel(media: List<com.aviatechnik.android.data.api.MediaDto>
         ) {
             androidx.compose.foundation.pager.HorizontalPager(
                 state = pagerState,
+                beyondViewportPageCount = 1, // preload the neighbours
                 modifier = Modifier.fillMaxSize(),
             ) { page ->
-                ZoomablePage(url = ApiUrls.rebase(media[page].url ?: media[page].thumbUrl))
+                ZoomablePage(
+                    thumbUrl = ApiUrls.rebase(media[page].thumbUrl),
+                    fullUrl = ApiUrls.rebase(media[page].url ?: media[page].thumbUrl),
+                )
             }
             if (media.size > 1) {
                 Text(
@@ -523,11 +527,14 @@ private fun PhotoCarousel(media: List<com.aviatechnik.android.data.api.MediaDto>
 }
 
 /** Pinch to zoom, drag to pan when zoomed; a single-finger swipe at 1x is
- *  left unconsumed so the pager underneath can change pages. */
+ *  left unconsumed so the pager underneath can change pages.
+ *  Progressive loading: the tiny thumb shows instantly, the full-size image
+ *  fades in over it when ready (spinner until then). */
 @Composable
-private fun ZoomablePage(url: String?) {
+private fun ZoomablePage(thumbUrl: String?, fullUrl: String?) {
     var scale by remember { mutableStateOf(1f) }
     var offset by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+    var fullLoaded by remember { mutableStateOf(false) }
     Box(
         Modifier
             .fillMaxSize()
@@ -550,16 +557,38 @@ private fun ZoomablePage(url: String?) {
                 }
             },
     ) {
+        val imageModifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer(
+                scaleX = scale, scaleY = scale,
+                translationX = offset.x, translationY = offset.y,
+            )
+        if (!fullLoaded && thumbUrl != null) {
+            AsyncImage(
+                model = thumbUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = imageModifier,
+            )
+        }
         AsyncImage(
-            model = url,
+            model = fullUrl,
             contentDescription = null,
             contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer(
-                    scaleX = scale, scaleY = scale,
-                    translationX = offset.x, translationY = offset.y,
-                ),
+            onState = { state ->
+                if (state is coil.compose.AsyncImagePainter.State.Success) fullLoaded = true
+            },
+            modifier = imageModifier,
         )
+        if (!fullLoaded) {
+            CircularProgressIndicator(
+                color = androidx.compose.ui.graphics.Color.White,
+                strokeWidth = 2.dp,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 48.dp)
+                    .size(24.dp),
+            )
+        }
     }
 }
