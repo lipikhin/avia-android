@@ -6,7 +6,9 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.FormatPaint
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PrecisionManufacturing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -81,6 +83,7 @@ fun HomeScreen(
     onOpenWorkorder: (Int) -> Unit = {},
     onOpenProfile: () -> Unit = {},
     onCreateDraft: () -> Unit = {},
+    onOpenMachiningWo: (Int, Boolean) -> Unit = { _, _ -> },
     vm: HomeViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsState()
@@ -110,7 +113,12 @@ fun HomeScreen(
             // Shell: top menu bar (parity with mobile-menu.blade) + section.
             val b = state.bootstrap!!
             var section by androidx.compose.runtime.saveable.rememberSaveable {
-                androidx.compose.runtime.mutableStateOf("workorders")
+                androidx.compose.runtime.mutableStateOf(
+                    when (b.menuMode) {
+                        "paint", "machining" -> b.menuMode
+                        else -> "workorders"
+                    },
+                )
             }
             Column(Modifier.fillMaxSize()) {
                 val items = buildList {
@@ -130,6 +138,26 @@ fun HomeScreen(
                             onClick = { section = "materials" },
                         ),
                     )
+                    if (b.user.capabilities["can_use_paint"] == true) {
+                        add(
+                            com.aviatechnik.android.ui.components.MenuItem(
+                                key = "paint", label = "Paint",
+                                icon = Icons.Filled.FormatPaint,
+                                active = section == "paint",
+                                onClick = { section = "paint" },
+                            ),
+                        )
+                    }
+                    if (b.user.capabilities["can_use_machining"] == true) {
+                        add(
+                            com.aviatechnik.android.ui.components.MenuItem(
+                                key = "machining", label = "Machining",
+                                icon = Icons.Filled.PrecisionManufacturing,
+                                active = section == "machining",
+                                onClick = { section = "machining" },
+                            ),
+                        )
+                    }
                     if (b.user.capabilities["can_create_draft"] == true) {
                         add(
                             com.aviatechnik.android.ui.components.MenuItem(
@@ -160,6 +188,10 @@ fun HomeScreen(
 
                 when (section) {
                     "materials" -> com.aviatechnik.android.ui.screens.materials.MaterialsSection()
+                    "paint" -> com.aviatechnik.android.ui.screens.shop.PaintSection()
+                    "machining" -> com.aviatechnik.android.ui.screens.shop.MachiningSection(
+                        onOpen = onOpenMachiningWo,
+                    )
                     "drafts" -> com.aviatechnik.android.ui.screens.drafts.DraftsSection(
                         onOpenWorkorder = onOpenWorkorder,
                         onCreateDraft = onCreateDraft,

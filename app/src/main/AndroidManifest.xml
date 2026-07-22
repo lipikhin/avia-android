@@ -9,7 +9,10 @@
         android:icon="@mipmap/ic_launcher"
         android:theme="@style/Theme.Avia"
         android:usesCleartextTraffic="true"
-        android:supportsRtl="false">
+        android:supportsRtl="false"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules">
 
         <activity
             android:name=".MainActivity"

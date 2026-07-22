@@ -89,12 +89,12 @@ fun MobileMenuBar(items: List<MenuItem>) {
 /** WO context menu — parity with the web onShowPage menu: WO (back to the
  *  list) · Workorder · Tasks · Parts · Process, active item ringed. */
 @Composable
-fun WoMenuBar(active: String, onGo: (String) -> Unit) {
+fun WoMenuBar(active: String, onGo: (String) -> Unit, woNumber: String? = null) {
     MobileMenuBar(
         listOf(
             MenuItem("wo", "WO", icon = Icons.Filled.Brush,
                 onClick = { onGo("list") }),
-            MenuItem("workorder", "Workorder", letter = "W", active = active == "workorder",
+            MenuItem("workorder", woNumber ?: "Workorder", letter = "W", active = active == "workorder",
                 onClick = { onGo("detail") }),
             MenuItem("tasks", "Tasks", icon = Icons.Filled.Alarm,
                 active = active == "tasks", onClick = { onGo("tasks") }),

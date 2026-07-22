@@ -6,7 +6,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -220,10 +223,10 @@ private fun DetailBody(
         )
     }
 
-    // Full-screen photo viewer (tap a thumbnail); pinch to zoom, drag to pan
-    var viewerUrl by remember { mutableStateOf<String?>(null) }
-    viewerUrl?.let { url ->
-        PhotoViewer(url = url, onClose = { viewerUrl = null })
+    // Full-screen carousel (tap a media tile); swipe between photos, pinch to zoom
+    var viewerMedia by remember { mutableStateOf<List<com.aviatechnik.android.data.api.MediaDto>?>(null) }
+    viewerMedia?.let { media ->
+        PhotoCarousel(media = media, onClose = { viewerMedia = null })
     }
 
     Column(
@@ -235,38 +238,32 @@ private fun DetailBody(
     ) {
         InfoBlock(wo)
 
-        StorageSection(wo, vm)
-        ArrivalBoxSection(wo, vm)
+        // Storage is entered on DRAFTS by Shipping/Manager/Admin; elsewhere the
+        // tile appears only when there is something to show.
+        val s = wo.storage
+        val storageFilled = s != null && (s.location != null || s.rack != null || s.level != null || s.column != null)
+        if (storageFilled || (wo.isDraft && s?.canUpdate == true)) {
+            StorageSection(wo, vm)
+        }
+        // Arrival box: only for roles allowed to record it.
+        if (wo.arrivalBox?.canUpdate == true) {
+            ArrivalBoxSection(wo, vm)
+        }
 
-        // All groups are shown (not only non-empty) so the first photo of a
-        // group can be taken right here.
+        // Uniform media tiles (no previews): tap opens a fullscreen carousel,
+        // the camera icon adds a photo to the group.
         wo.mediaGroups.forEach { group ->
             SectionCard(
                 title = "${group.label ?: group.key} (${group.count})",
+                onClick = if (group.media.isNotEmpty()) {
+                    { viewerMedia = group.media }
+                } else null,
                 trailing = {
                     IconButton(onClick = { launchCamera(group.key) }) {
                         Icon(Icons.Filled.PhotoCamera, contentDescription = "Take photo", tint = AviaDeepSkyBlue)
                     }
                 },
-            ) {
-                if (group.media.isEmpty()) {
-                    Text("No photos yet", style = MaterialTheme.typography.bodySmall, color = AviaTextSecondary)
-                } else {
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(group.media, key = { it.id }) { m ->
-                            AsyncImage(
-                                model = ApiUrls.rebase(m.thumbUrl),
-                                contentDescription = m.name,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(96.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable { viewerUrl = ApiUrls.rebase(m.url ?: m.thumbUrl) },
-                            )
-                        }
-                    }
-                }
-            }
+            ) {}
         }
         Spacer(Modifier.height(12.dp))
     }
@@ -283,7 +280,7 @@ private fun StorageSection(wo: WorkorderDetailDto, vm: WorkorderDetailViewModel)
     SectionCard(
         title = "Storage",
         trailing = {
-            if (s?.canUpdate == true && !editing) {
+            if (s?.canUpdate == true && wo.isDraft && !editing) {
                 OutlinedButton(onClick = {
                     rack = s.rack?.toString() ?: ""
                     level = s.level?.toString() ?: ""
@@ -449,8 +446,16 @@ private fun KV(label: String, value: String?) {
 }
 
 @Composable
-private fun SectionCard(title: String, trailing: (@Composable () -> Unit)? = null, content: @Composable () -> Unit) {
-    Card(Modifier.fillMaxWidth()) {
+private fun SectionCard(
+    title: String,
+    trailing: (@Composable () -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+    content: @Composable () -> Unit,
+) {
+    val cardModifier = Modifier
+        .fillMaxWidth()
+        .let { if (onClick != null) it.clickable(onClick = onClick) else it }
+    Card(cardModifier) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(title, style = MaterialTheme.typography.titleSmall, color = AviaDeepSkyBlue)
@@ -478,35 +483,31 @@ private fun newPhotoFile(context: Context): File {
 }
 
 @Composable
-private fun PhotoViewer(url: String, onClose: () -> Unit) {
+private fun PhotoCarousel(media: List<com.aviatechnik.android.data.api.MediaDto>, onClose: () -> Unit) {
     androidx.compose.ui.window.Dialog(
         onDismissRequest = onClose,
         properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
     ) {
-        var scale by remember { mutableStateOf(1f) }
-        var offset by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+        val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { media.size })
         Box(
             Modifier
                 .fillMaxSize()
-                .background(androidx.compose.ui.graphics.Color.Black)
-                .pointerInput(Unit) {
-                    detectTransformGestures { _, pan, zoom, _ ->
-                        scale = (scale * zoom).coerceIn(1f, 6f)
-                        offset = if (scale > 1f) offset + pan else androidx.compose.ui.geometry.Offset.Zero
-                    }
-                },
+                .background(androidx.compose.ui.graphics.Color.Black),
         ) {
-            AsyncImage(
-                model = url,
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer(
-                        scaleX = scale, scaleY = scale,
-                        translationX = offset.x, translationY = offset.y,
-                    ),
-            )
+            androidx.compose.foundation.pager.HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+            ) { page ->
+                ZoomablePage(url = ApiUrls.rebase(media[page].url ?: media[page].thumbUrl))
+            }
+            if (media.size > 1) {
+                Text(
+                    "${pagerState.currentPage + 1} / ${media.size}",
+                    color = androidx.compose.ui.graphics.Color.White,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
+                )
+            }
             IconButton(
                 onClick = onClose,
                 modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
@@ -518,5 +519,47 @@ private fun PhotoViewer(url: String, onClose: () -> Unit) {
                 )
             }
         }
+    }
+}
+
+/** Pinch to zoom, drag to pan when zoomed; a single-finger swipe at 1x is
+ *  left unconsumed so the pager underneath can change pages. */
+@Composable
+private fun ZoomablePage(url: String?) {
+    var scale by remember { mutableStateOf(1f) }
+    var offset by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+    Box(
+        Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    do {
+                        val event = awaitPointerEvent()
+                        val multiTouch = event.changes.count { it.pressed } > 1
+                        if (multiTouch || scale > 1f) {
+                            val zoom = event.calculateZoom()
+                            val pan = event.calculatePan()
+                            scale = (scale * zoom).coerceIn(1f, 6f)
+                            offset =
+                                if (scale > 1f) offset + pan
+                                else androidx.compose.ui.geometry.Offset.Zero
+                            event.changes.forEach { it.consume() }
+                        }
+                    } while (event.changes.any { it.pressed })
+                }
+            },
+    ) {
+        AsyncImage(
+            model = url,
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer(
+                    scaleX = scale, scaleY = scale,
+                    translationX = offset.x, translationY = offset.y,
+                ),
+        )
     }
 }

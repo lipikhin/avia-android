@@ -64,7 +64,17 @@ fun AviaNavHost() {
                 onOpenWorkorder = { id -> nav.navigate("wo/$id") },
                 onOpenProfile = { nav.navigate("profile") },
                 onCreateDraft = { nav.navigate("draft/new") },
+                onOpenMachiningWo = { id, myWo -> nav.navigate("machining/$id?myWo=${if (myWo) 1 else 0}") },
             )
+        }
+        composable(
+            route = "machining/{id}?myWo={myWo}",
+            arguments = listOf(
+                navArgument("id") { type = NavType.IntType },
+                navArgument("myWo") { type = NavType.StringType; defaultValue = "0" },
+            ),
+        ) {
+            com.aviatechnik.android.ui.screens.shop.MachiningWoScreen(onBack = { nav.popBackStack() })
         }
         composable("draft/new") {
             com.aviatechnik.android.ui.screens.drafts.DraftCreateScreen(

@@ -232,6 +232,7 @@ data class MediaUploadData(
 
 @Serializable
 data class TasksData(
+    val workorder: WorkorderItemDto? = null,
     val groups: List<TaskGroupDto> = emptyList(),
 )
 
@@ -273,6 +274,7 @@ data class TaskDatesRequest(
 
 @Serializable
 data class ProcessesData(
+    val workorder: WorkorderItemDto? = null,
     val components: List<ProcessComponentDto> = emptyList(),
 )
 
@@ -304,6 +306,94 @@ data class ProcessDatesRequest(
     @SerialName("date_start") val dateStart: String? = null,
     @SerialName("date_finish") val dateFinish: String? = null,
     @SerialName("date_promise") val datePromise: String? = null,
+    val source: String? = null, // "paint" | "machining" — server-side context flags
+)
+
+/* ── paint ─────────────────────────────────────────────────────── */
+
+@Serializable
+data class PaintData(
+    val rows: List<PaintRowDto> = emptyList(),
+    @SerialName("lost_parts") val lostParts: List<PaintLostDto> = emptyList(),
+)
+
+@Serializable
+data class PaintRowDto(
+    val workorder: WorkorderItemDto,
+    @SerialName("detail_label") val detailLabel: String? = null,
+    @SerialName("is_queue_master") val isQueueMaster: Boolean = false,
+    @SerialName("queue_display") val queueDisplay: String? = null,
+    val owner: NamedDto? = null,
+    @SerialName("start_date") val startDate: String? = null,
+    @SerialName("finish_date") val finishDate: String? = null,
+    @SerialName("editable_process_id") val editableProcessId: Int? = null,
+    val closed: Boolean = false,
+)
+
+@Serializable
+data class PaintLostDto(
+    val id: Int,
+    @SerialName("part_number") val partNumber: String? = null,
+    @SerialName("serial_number") val serialNumber: String? = null,
+    val comment: String? = null,
+    val owner: NamedDto? = null,
+    val photo: MediaDto? = null,
+)
+
+@Serializable
+data class PaintMessageRequest(
+    @SerialName("user_id") val userId: Int,
+    val message: String,
+)
+
+/* ── machining ─────────────────────────────────────────────────── */
+
+@Serializable
+data class MachiningData(
+    val items: List<MachiningItemDto> = emptyList(),
+    @SerialName("my_wo") val myWo: Boolean = false,
+)
+
+@Serializable
+data class MachiningItemDto(
+    val workorder: WorkorderItemDto,
+    @SerialName("queue_display") val queueDisplay: String? = null,
+)
+
+@Serializable
+data class MachiningWoData(
+    val workorder: WorkorderItemDto,
+    @SerialName("detail_items") val detailItems: List<MachiningDetailItemDto> = emptyList(),
+)
+
+@Serializable
+data class MachiningDetailItemDto(
+    val kind: String,
+    @SerialName("detail_name") val detailName: String? = null,
+    @SerialName("detail_label") val detailLabel: String? = null,
+    @SerialName("detail_serial") val detailSerial: String? = null,
+    @SerialName("date_parent") val dateParent: String? = null,
+    @SerialName("processes_label") val processesLabel: String? = null,
+    val steps: List<MachiningDetailItemDto> = emptyList(),
+    val step: MachiningStepDto? = null,
+    @SerialName("effective_step_start") val effectiveStepStart: String? = null,
+    @SerialName("display_machinist") val displayMachinist: NamedDto? = null,
+    @SerialName("can_edit") val canEdit: Boolean = false,
+)
+
+@Serializable
+data class MachiningStepDto(
+    val id: Int,
+    @SerialName("step_index") val stepIndex: Int = 0,
+    @SerialName("date_start") val dateStart: String? = null,
+    @SerialName("date_finish") val dateFinish: String? = null,
+    val description: String? = null,
+)
+
+@Serializable
+data class MachiningStepRequest(
+    @SerialName("date_start") val dateStart: String? = null,
+    @SerialName("date_finish") val dateFinish: String? = null,
 )
 
 /* ── materials ─────────────────────────────────────────────────── */
@@ -332,6 +422,7 @@ data class MaterialUpdateData(val material: MaterialDto)
 
 @Serializable
 data class ComponentsData(
+    val workorder: WorkorderItemDto? = null,
     @SerialName("attached_components") val attachedComponents: List<ComponentDto> = emptyList(),
     @SerialName("manual_components") val manualComponents: List<ComponentDto> = emptyList(),
     val codes: List<NamedDto> = emptyList(),

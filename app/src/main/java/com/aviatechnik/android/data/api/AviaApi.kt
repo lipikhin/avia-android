@@ -113,6 +113,33 @@ interface AviaApi {
         @Part photo: okhttp3.MultipartBody.Part, // form field name: photo
     ): Envelope<kotlinx.serialization.json.JsonObject>
 
+    @GET("paint")
+    suspend fun paint(): Envelope<PaintData>
+
+    @Multipart
+    @POST("paint/lost")
+    suspend fun storePaintLost(
+        @Part("part_number") partNumber: okhttp3.RequestBody,
+        @Part("serial_number") serialNumber: okhttp3.RequestBody?,
+        @Part("comment") comment: okhttp3.RequestBody?,
+        @Part photo: okhttp3.MultipartBody.Part,
+    ): Envelope<kotlinx.serialization.json.JsonObject>
+
+    @retrofit2.http.DELETE("paint/lost/{id}")
+    suspend fun deletePaintLost(@Path("id") id: Int): Envelope<kotlinx.serialization.json.JsonObject?>
+
+    @POST("paint/messages")
+    suspend fun sendPaintMessage(@Body body: PaintMessageRequest): Envelope<kotlinx.serialization.json.JsonObject?>
+
+    @GET("machining")
+    suspend fun machining(@Query("my_wo") myWo: Boolean = false): Envelope<MachiningData>
+
+    @GET("machining/workorders/{id}")
+    suspend fun machiningWorkorder(@Path("id") id: Int, @Query("my_wo") myWo: Boolean = false): Envelope<MachiningWoData>
+
+    @PATCH("machining/steps/{id}")
+    suspend fun updateMachiningStep(@Path("id") id: Int, @Body body: MachiningStepRequest): Envelope<kotlinx.serialization.json.JsonObject>
+
     @GET("materials")
     suspend fun materials(): Envelope<MaterialsData>
 

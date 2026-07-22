@@ -16,13 +16,27 @@ import javax.inject.Singleton
 @Singleton
 class TokenStore @Inject constructor(@ApplicationContext context: Context) {
 
-    private val prefs: SharedPreferences = EncryptedSharedPreferences.create(
-        context,
-        "avia_auth",
-        MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build(),
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-    )
+    private val prefs: SharedPreferences = createPrefs(context)
+
+    /** A restored-from-backup prefs file with a lost Keystore key throws
+     *  AEADBadTagException on open — wipe the stale file and start clean
+     *  (the user just logs in again) instead of crashing on launch. */
+    private fun createPrefs(context: Context): SharedPreferences =
+        try {
+            openEncrypted(context)
+        } catch (e: Exception) {
+            context.deleteSharedPreferences("avia_auth")
+            openEncrypted(context)
+        }
+
+    private fun openEncrypted(context: Context): SharedPreferences =
+        EncryptedSharedPreferences.create(
+            context,
+            "avia_auth",
+            MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build(),
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+        )
 
     @Volatile
     private var memoryToken: String? = null

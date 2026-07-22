@@ -54,14 +54,14 @@ class WorkorderRepository @Inject constructor(
         apiCall(tokenStore) { api.processes(id) }
 
     /** field: "start" | "finish" | "promise". */
-    suspend fun updateProcessDate(processId: Int, field: String, date: String): ApiResult<*> =
+    suspend fun updateProcessDate(processId: Int, field: String, date: String, source: String? = null): ApiResult<*> =
         apiCall(tokenStore) {
             api.updateProcessDates(
                 processId,
                 when (field) {
-                    "start" -> ProcessDatesRequest(dateStart = date)
-                    "finish" -> ProcessDatesRequest(dateFinish = date)
-                    else -> ProcessDatesRequest(datePromise = date)
+                    "start" -> ProcessDatesRequest(dateStart = date, source = source)
+                    "finish" -> ProcessDatesRequest(dateFinish = date, source = source)
+                    else -> ProcessDatesRequest(datePromise = date, source = source)
                 },
             )
         }

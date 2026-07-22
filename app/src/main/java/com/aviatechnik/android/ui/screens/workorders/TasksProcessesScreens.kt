@@ -101,7 +101,10 @@ class TasksViewModel @Inject constructor(
 fun TasksScreen(onGo: (String) -> Unit, vm: TasksViewModel = hiltViewModel()) {
     val state by vm.state.collectAsState()
 
-    ScreenScaffold(active = "tasks", busy = state.busy, actionError = state.actionError, onGo = onGo) {
+    ScreenScaffold(
+        active = "tasks", busy = state.busy, actionError = state.actionError, onGo = onGo,
+        woNumber = state.data?.workorder?.numberDisplay?.let { "W$it" },
+    ) {
         when {
             state.loading -> Centered { CircularProgressIndicator() }
             state.error != null -> Centered { Text(state.error!!, color = MaterialTheme.colorScheme.error) }
@@ -203,7 +206,10 @@ class ProcessesViewModel @Inject constructor(
 fun ProcessesScreen(onGo: (String) -> Unit, vm: ProcessesViewModel = hiltViewModel()) {
     val state by vm.state.collectAsState()
 
-    ScreenScaffold(active = "process", busy = state.busy, actionError = state.actionError, onGo = onGo) {
+    ScreenScaffold(
+        active = "process", busy = state.busy, actionError = state.actionError, onGo = onGo,
+        woNumber = state.data?.workorder?.numberDisplay?.let { "W$it" },
+    ) {
         when {
             state.loading -> Centered { CircularProgressIndicator() }
             state.error != null -> Centered { Text(state.error!!, color = MaterialTheme.colorScheme.error) }
@@ -253,10 +259,11 @@ private fun ScreenScaffold(
     busy: Boolean,
     actionError: String?,
     onGo: (String) -> Unit,
+    woNumber: String? = null,
     content: @Composable () -> Unit,
 ) {
     Column(Modifier.fillMaxSize()) {
-        com.aviatechnik.android.ui.components.WoMenuBar(active = active, onGo = onGo)
+        com.aviatechnik.android.ui.components.WoMenuBar(active = active, onGo = onGo, woNumber = woNumber)
         if (busy) androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth())
         actionError?.let {
             Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall,

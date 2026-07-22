@@ -227,7 +227,10 @@ fun ComponentsScreen(onGo: (String) -> Unit, vm: ComponentsViewModel = hiltViewM
     }
 
     Column(Modifier.fillMaxSize()) {
-        com.aviatechnik.android.ui.components.WoMenuBar(active = "parts", onGo = onGo)
+        com.aviatechnik.android.ui.components.WoMenuBar(
+            active = "parts", onGo = onGo,
+            woNumber = state.data?.workorder?.numberDisplay?.let { "W$it" },
+        )
         if (state.busy) androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth())
         state.actionError?.let {
             Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall,
