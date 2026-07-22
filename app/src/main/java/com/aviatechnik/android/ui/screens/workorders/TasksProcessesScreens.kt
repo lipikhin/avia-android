@@ -98,10 +98,10 @@ class TasksViewModel @Inject constructor(
 }
 
 @Composable
-fun TasksScreen(onBack: () -> Unit, vm: TasksViewModel = hiltViewModel()) {
+fun TasksScreen(onGo: (String) -> Unit, vm: TasksViewModel = hiltViewModel()) {
     val state by vm.state.collectAsState()
 
-    ScreenScaffold(title = "Tasks", busy = state.busy, actionError = state.actionError, onBack = onBack) {
+    ScreenScaffold(active = "tasks", busy = state.busy, actionError = state.actionError, onGo = onGo) {
         when {
             state.loading -> Centered { CircularProgressIndicator() }
             state.error != null -> Centered { Text(state.error!!, color = MaterialTheme.colorScheme.error) }
@@ -200,10 +200,10 @@ class ProcessesViewModel @Inject constructor(
 }
 
 @Composable
-fun ProcessesScreen(onBack: () -> Unit, vm: ProcessesViewModel = hiltViewModel()) {
+fun ProcessesScreen(onGo: (String) -> Unit, vm: ProcessesViewModel = hiltViewModel()) {
     val state by vm.state.collectAsState()
 
-    ScreenScaffold(title = "Processes", busy = state.busy, actionError = state.actionError, onBack = onBack) {
+    ScreenScaffold(active = "process", busy = state.busy, actionError = state.actionError, onGo = onGo) {
         when {
             state.loading -> Centered { CircularProgressIndicator() }
             state.error != null -> Centered { Text(state.error!!, color = MaterialTheme.colorScheme.error) }
@@ -249,23 +249,15 @@ fun ProcessesScreen(onBack: () -> Unit, vm: ProcessesViewModel = hiltViewModel()
 
 @Composable
 private fun ScreenScaffold(
-    title: String,
+    active: String,
     busy: Boolean,
     actionError: String?,
-    onBack: () -> Unit,
+    onGo: (String) -> Unit,
     content: @Composable () -> Unit,
 ) {
     Column(Modifier.fillMaxSize()) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 6.dp),
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-            }
-            Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
-            if (busy) CircularProgressIndicator(Modifier.size(22.dp))
-        }
+        com.aviatechnik.android.ui.components.WoMenuBar(active = active, onGo = onGo)
+        if (busy) androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth())
         actionError?.let {
             Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(horizontal = 16.dp))

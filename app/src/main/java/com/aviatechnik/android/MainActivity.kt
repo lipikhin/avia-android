@@ -77,35 +77,45 @@ fun AviaNavHost() {
         composable("profile") {
             com.aviatechnik.android.ui.screens.profile.ProfileScreen(onBack = { nav.popBackStack() })
         }
+        // shared WO-menu navigation for all WO sub-screens
+        fun goWo(id: Int, dest: String) {
+            when (dest) {
+                "list" -> nav.popBackStack(Routes.HOME, false)
+                "detail" -> nav.popBackStack("wo/{id}", false)
+                "tasks" -> nav.navigate("wo/$id/tasks") { popUpTo("wo/{id}"); launchSingleTop = true }
+                "parts" -> nav.navigate("wo/$id/components") { popUpTo("wo/{id}"); launchSingleTop = true }
+                "process" -> nav.navigate("wo/$id/processes") { popUpTo("wo/{id}"); launchSingleTop = true }
+            }
+        }
         composable(
             route = "wo/{id}",
             arguments = listOf(navArgument("id") { type = NavType.IntType }),
         ) { entry ->
             val id = entry.arguments?.getInt("id") ?: 0
             com.aviatechnik.android.ui.screens.workorders.WorkorderDetailScreen(
-                onBack = { nav.popBackStack() },
-                onOpenTasks = { nav.navigate("wo/$id/tasks") },
-                onOpenProcesses = { nav.navigate("wo/$id/processes") },
-                onOpenComponents = { nav.navigate("wo/$id/components") },
+                onGo = { dest -> goWo(id, dest) },
             )
         }
         composable(
             route = "wo/{id}/components",
             arguments = listOf(navArgument("id") { type = NavType.IntType }),
-        ) {
-            com.aviatechnik.android.ui.screens.components.ComponentsScreen(onBack = { nav.popBackStack() })
+        ) { entry ->
+            val id = entry.arguments?.getInt("id") ?: 0
+            com.aviatechnik.android.ui.screens.components.ComponentsScreen(onGo = { dest -> goWo(id, dest) })
         }
         composable(
             route = "wo/{id}/tasks",
             arguments = listOf(navArgument("id") { type = NavType.IntType }),
-        ) {
-            com.aviatechnik.android.ui.screens.workorders.TasksScreen(onBack = { nav.popBackStack() })
+        ) { entry ->
+            val id = entry.arguments?.getInt("id") ?: 0
+            com.aviatechnik.android.ui.screens.workorders.TasksScreen(onGo = { dest -> goWo(id, dest) })
         }
         composable(
             route = "wo/{id}/processes",
             arguments = listOf(navArgument("id") { type = NavType.IntType }),
-        ) {
-            com.aviatechnik.android.ui.screens.workorders.ProcessesScreen(onBack = { nav.popBackStack() })
+        ) { entry ->
+            val id = entry.arguments?.getInt("id") ?: 0
+            com.aviatechnik.android.ui.screens.workorders.ProcessesScreen(onGo = { dest -> goWo(id, dest) })
         }
     }
 }

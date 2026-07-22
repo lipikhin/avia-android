@@ -158,41 +158,15 @@ class WorkorderDetailViewModel @Inject constructor(
 
 @Composable
 fun WorkorderDetailScreen(
-    onBack: () -> Unit,
-    onOpenTasks: () -> Unit = {},
-    onOpenProcesses: () -> Unit = {},
-    onOpenComponents: () -> Unit = {},
+    onGo: (String) -> Unit,
     vm: WorkorderDetailViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsState()
 
     Column(Modifier.fillMaxSize()) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 6.dp),
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-            }
-            val wo = state.wo
-            Column(Modifier.weight(1f)) {
-                Text(
-                    "WO ${wo?.numberDisplay ?: ""}",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = if (wo?.isDone == true) AviaTextSecondary else AviaDeepSkyBlue,
-                )
-                wo?.let {
-                    val status = when {
-                        it.isDraft -> "draft"
-                        it.isDone -> "done ${it.doneAt ?: ""}"
-                        else -> "open ${it.openAt ?: ""}"
-                    }
-                    Text(status, style = MaterialTheme.typography.labelSmall, color = AviaTextSecondary)
-                }
-            }
-            if (state.busy) CircularProgressIndicator(Modifier.size(22.dp))
+        com.aviatechnik.android.ui.components.WoMenuBar(active = "workorder", onGo = onGo)
+        if (state.busy) {
+            androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth())
         }
 
         state.actionError?.let {
@@ -211,7 +185,7 @@ fun WorkorderDetailScreen(
             state.error != null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(state.error!!, color = MaterialTheme.colorScheme.error)
             }
-            else -> DetailBody(state.wo!!, vm, onOpenTasks, onOpenProcesses, onOpenComponents)
+            else -> DetailBody(state.wo!!, vm)
         }
     }
 }
@@ -220,9 +194,6 @@ fun WorkorderDetailScreen(
 private fun DetailBody(
     wo: WorkorderDetailDto,
     vm: WorkorderDetailViewModel,
-    onOpenTasks: () -> Unit = {},
-    onOpenProcesses: () -> Unit = {},
-    onOpenComponents: () -> Unit = {},
 ) {
     val context = LocalContext.current
 
@@ -262,30 +233,6 @@ private fun DetailBody(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        // WO context menu — parity with the web onShowPage top menu
-        com.aviatechnik.android.ui.components.MobileMenuBar(
-            listOf(
-                com.aviatechnik.android.ui.components.MenuItem(
-                    key = "wo", label = "Workorder", letter = "W", active = true,
-                ),
-                com.aviatechnik.android.ui.components.MenuItem(
-                    key = "tasks", label = "Tasks",
-                    icon = Icons.Filled.Alarm,
-                    onClick = onOpenTasks,
-                ),
-                com.aviatechnik.android.ui.components.MenuItem(
-                    key = "parts", label = "Parts",
-                    icon = Icons.Filled.Settings,
-                    onClick = onOpenComponents,
-                ),
-                com.aviatechnik.android.ui.components.MenuItem(
-                    key = "process", label = "Process",
-                    icon = Icons.Filled.Timeline,
-                    onClick = onOpenProcesses,
-                ),
-            ),
-        )
-
         InfoBlock(wo)
 
         StorageSection(wo, vm)

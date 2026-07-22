@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -23,6 +25,23 @@ android {
         buildConfigField("String", "DEBUG_HOST_HEADER", "\"\"")
     }
 
+    // Release signing: keystore lives OUTSIDE the repo (E:/dev/keys). The
+    // build stays green without it — release is just unsigned then.
+    val keystoreProps = Properties().apply {
+        val f = file("E:/dev/keys/keystore.properties")
+        if (f.exists()) f.inputStream().use { this.load(it) }
+    }
+    if (keystoreProps.isNotEmpty()) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         debug {
             // Local OSPanel backend over USB: `adb reverse tcp:8080 tcp:80`
@@ -35,6 +54,9 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (keystoreProps.isNotEmpty()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 

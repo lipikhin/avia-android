@@ -9,6 +9,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material.icons.filled.Brush
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -74,8 +79,29 @@ fun MobileMenuBar(items: List<MenuItem>) {
                     color = tint,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                    textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
                 )
             }
         }
     }
+}
+
+/** WO context menu — parity with the web onShowPage menu: WO (back to the
+ *  list) · Workorder · Tasks · Parts · Process, active item ringed. */
+@Composable
+fun WoMenuBar(active: String, onGo: (String) -> Unit) {
+    MobileMenuBar(
+        listOf(
+            MenuItem("wo", "WO", icon = Icons.Filled.Brush,
+                onClick = { onGo("list") }),
+            MenuItem("workorder", "Workorder", letter = "W", active = active == "workorder",
+                onClick = { onGo("detail") }),
+            MenuItem("tasks", "Tasks", icon = Icons.Filled.Alarm,
+                active = active == "tasks", onClick = { onGo("tasks") }),
+            MenuItem("parts", "Parts", icon = Icons.Filled.Settings,
+                active = active == "parts", onClick = { onGo("parts") }),
+            MenuItem("process", "Process", icon = Icons.Filled.Timeline,
+                active = active == "process", onClick = { onGo("process") }),
+        ),
+    )
 }

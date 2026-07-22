@@ -53,18 +53,18 @@ fun FrontShell(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color(0xFF0B0B0B))
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .padding(horizontal = 10.dp, vertical = 4.dp),
         ) {
             AsyncImage(
                 model = assetUrl("img/favicon.webp"),
                 contentDescription = null,
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(22.dp),
             )
             Spacer(Modifier.width(6.dp))
             AsyncImage(
                 model = assetUrl("img/icons/AT_logo-rb.svg"),
                 contentDescription = "AVIATECHNIK",
-                modifier = Modifier.height(26.dp).width(170.dp),
+                modifier = Modifier.height(20.dp).width(132.dp),
             )
             Spacer(Modifier.weight(1f))
             // bordered hamburger button (bootstrap navbar-toggler look)
@@ -72,7 +72,7 @@ fun FrontShell(
                 Modifier
                     .border(1.dp, Color(0xFF6C757D), RoundedCornerShape(6.dp))
                     .clickable(enabled = onHamburger != null) { onHamburger?.invoke() }
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
             ) {
                 Icon(Icons.Filled.Menu, contentDescription = "Menu", tint = Color(0xFFADB5BD))
             }

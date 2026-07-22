@@ -152,7 +152,7 @@ class ComponentsViewModel @Inject constructor(
 }
 
 @Composable
-fun ComponentsScreen(onBack: () -> Unit, vm: ComponentsViewModel = hiltViewModel()) {
+fun ComponentsScreen(onGo: (String) -> Unit, vm: ComponentsViewModel = hiltViewModel()) {
     val state by vm.state.collectAsState()
     val context = LocalContext.current
 
@@ -227,16 +227,8 @@ fun ComponentsScreen(onBack: () -> Unit, vm: ComponentsViewModel = hiltViewModel
     }
 
     Column(Modifier.fillMaxSize()) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 6.dp),
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-            }
-            Text("Components / TDR", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
-            if (state.busy) CircularProgressIndicator(Modifier.size(22.dp))
-        }
+        com.aviatechnik.android.ui.components.WoMenuBar(active = "parts", onGo = onGo)
+        if (state.busy) androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth())
         state.actionError?.let {
             Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(horizontal = 16.dp))
